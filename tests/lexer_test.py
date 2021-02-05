@@ -1,3 +1,5 @@
+# lexer_test.py
+
 from unittest import TestCase
 from typing import List
 
@@ -27,7 +29,7 @@ class LexerTest(TestCase):
         self.assertEquals(tokens, expected_tokens)
 
     def test_one_character_operator(self) -> None:
-        source: str = '=+'
+        source: str = '=+-/*<>!'
         lexer: Lexer = Lexer(source)
 
         tokens: List[Token] = []
@@ -37,6 +39,12 @@ class LexerTest(TestCase):
             expected_tokens: List[Token] = [
                 Token(TokenType.ASSIGN, '='),
                 Token(TokenType.PLUS, '+'),
+                Token(TokenType.MINUS, "-"),
+                Token(TokenType.DIVISION, "/"),
+                Token(TokenType.MULTIPLICATION, "*"),
+                Token(TokenType.LT, "<"),
+                Token(TokenType.GT, ">"),
+                Token(TokenType.NEGATION, "!"),
             ]
 
         self.assertEquals(tokens, expected_tokens)
@@ -148,3 +156,154 @@ class LexerTest(TestCase):
         ]
 
         self.assertEquals(tokens, expected_tokens)
+
+    def test_control_statment(self) -> None:
+        source: str = '''
+            si (5 < 10) {
+                regresa verdadero;
+            } si_no {
+                regresa falso;
+            }
+        '''
+        lexer: Lexer = Lexer(source)
+
+        tokens: List[Token] = []
+        for i in range(17):
+            tokens.append(lexer.next_token())
+
+        expected_tokens: List[Token] = [
+            Token(TokenType.IF, 'si'),
+            Token(TokenType.LPAREN, '('),
+            Token(TokenType.INT, '5'),
+            Token(TokenType.LT, '<'),
+            Token(TokenType.INT, '10'),
+            Token(TokenType.RPAREN, ')'),
+            Token(TokenType.LBRACE, '{'),
+            Token(TokenType.RETURN, 'regresa'),
+            Token(TokenType.TRUE, 'verdadero'),
+            Token(TokenType.SEMICOLON, ';'),
+            Token(TokenType.RBRACE, '}'),
+            Token(TokenType.ELSE, 'si_no'),
+            Token(TokenType.LBRACE, '{'),
+            Token(TokenType.RETURN, 'regresa'),
+            Token(TokenType.FALSE, 'falso'),
+            Token(TokenType.SEMICOLON, ';'),
+            Token(TokenType.RBRACE, '}'),
+        ]
+
+        self.assertEquals(tokens, expected_tokens)
+
+    def test_two_character_operator(self) -> None:
+        source: str = '''
+            10 == 10;
+            10 != 9;
+            10 >= 4;
+            0 <= 11;
+        '''
+        lexer: Lexer = Lexer(source)
+
+        tokens: List[Token] = []
+        for i in range(16):
+            tokens.append(lexer.next_token())
+
+        expected_tokens: List[Token] = [
+                Token(TokenType.INT, '10'),
+                Token(TokenType.EQ, '=='),
+                Token(TokenType.INT, '10'),
+                Token(TokenType.SEMICOLON, ';'),
+                Token(TokenType.INT, '10'),
+                Token(TokenType.NOT_EQ, '!='),
+                Token(TokenType.INT, '9'),
+                Token(TokenType.SEMICOLON, ';'),
+                Token(TokenType.INT, '10'),
+                Token(TokenType.GE, '>='),
+                Token(TokenType.INT, '4'),
+                Token(TokenType.SEMICOLON, ';'),
+                Token(TokenType.INT, '0'),
+                Token(TokenType.LE, '<='),
+                Token(TokenType.INT, '11'),
+                Token(TokenType.SEMICOLON, ';'),
+        ]
+
+        self.assertEquals(tokens, expected_tokens)
+
+    def test_three_character_operator(self) -> None:
+        source: str = '''
+            10 === 10;
+            9 !== 4;
+        '''
+        lexer: Lexer = Lexer(source)
+
+        tokens: List[Token] = []
+        for i in range(8):
+            tokens.append(lexer.next_token())
+
+        expected_tokens: List[Token] = [
+            Token(TokenType.INT, '10'),
+            Token(TokenType.SIMILAR, '==='),
+            Token(TokenType.INT, '10'),
+            Token(TokenType.SEMICOLON, ';'),
+            Token(TokenType.INT, '9'),
+            Token(TokenType.DIFF, '!=='),
+            Token(TokenType.INT, '4'),
+            Token(TokenType.SEMICOLON, ';'),
+        ]
+
+        self.assertEquals(tokens, expected_tokens)
+
+    def test_mixed_character_operator(self) -> None:
+
+        source: str = """
+            10 === 10;
+            10 !== 9;
+            10 == 10;
+            10 != 9;
+        """
+
+        lexer: Lexer = Lexer(source)
+
+        tokens: List[Token] = []
+
+        for i in range(16):
+
+            tokens.append(lexer.next_token())
+
+        expected_tokens: List[Token] = [
+            Token(TokenType.INT, "10"),
+            Token(TokenType.SIMILAR, "==="),
+            Token(TokenType.INT, "10"),
+            Token(TokenType.SEMICOLON, ";"),
+            Token(TokenType.INT, "10"),
+            Token(TokenType.DIFF, "!=="),
+            Token(TokenType.INT, "9"),
+            Token(TokenType.SEMICOLON, ";"),
+            Token(TokenType.INT, "10"),
+            Token(TokenType.EQ, "=="),
+            Token(TokenType.INT, "10"),
+            Token(TokenType.SEMICOLON, ";"),
+            Token(TokenType.INT, "10"),
+            Token(TokenType.NOT_EQ, "!="),
+            Token(TokenType.INT, "9"),
+            Token(TokenType.SEMICOLON, ";"),
+        ]
+
+        self.assertEquals(tokens, expected_tokens)
+
+    def test_identifier_with_numbers(self) -> None:
+        source: str = '''
+            var numero_1 = 5;
+        '''
+        lexer: Lexer = Lexer(source)
+
+        tokens: List[Token] = []
+
+        for i in range(5):
+            tokens.append(lexer.next_token())
+
+        expected_tokens: List[Token] = [
+            Token(TokenType.LET, 'var'),
+            Token(TokenType.IDENT, 'numero_1'),
+            Token(TokenType.ASSIGN, '='),
+            Token(TokenType.INT, '5'),
+            Token(TokenType.SEMICOLON, ';'),
+        ]
