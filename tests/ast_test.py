@@ -1,6 +1,8 @@
 from unittest import TestCase
 
 from frl.ast import (
+    ExpressionStatement,
+    Float,
     Identifier,
     Integer,
     LetStatement,
@@ -77,3 +79,18 @@ class ASTTest(TestCase):
         program_str = str(program)
 
         self.assertEquals(program_str, 'var mi_num = 5;return mi_num;')
+
+    def test_float_with_expressionstatement(self) -> None:
+        program: Program = Program(statements=[
+            ExpressionStatement(
+                token=Token(TokenType.FLOAT, literal='1.5'),
+                expression=Float(
+                    token=Token(TokenType.FLOAT, literal='1.5'),
+                    value=1.5
+                )
+            )
+        ])
+
+        program_str = str(program)
+
+        self.assertEquals(program_str, '1.5;')
