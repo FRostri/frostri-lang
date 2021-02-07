@@ -5,8 +5,8 @@ colors = TextColors()
 
 
 def main() -> None:
-    print(f'{colors.GREEN}Bienvenido/a a el REPL del lenguaje de programación FRostri{colors.RESET}')
-    print('Escribe \'help\' para más información')
+    print(f'{colors.GREEN}Welcome to the FRostri programming language REPL{colors.RESET}')
+    print('Type \'help\' for mor information')
 
     start_repl()
 

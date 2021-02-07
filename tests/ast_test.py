@@ -37,7 +37,7 @@ class ASTTest(TestCase):
     def test_return_statement(self) -> None:
         program: Program = Program(statements=[
             ReturnStatement(
-                token=Token(TokenType.RETURN, literal="regresa"),
+                token=Token(TokenType.RETURN, literal="return"),
                 return_value=Identifier(
                     token=Token(TokenType.IDENT, literal="mi_var"),
                     value='mi_var'
@@ -47,7 +47,7 @@ class ASTTest(TestCase):
 
         program_str = str(program)
 
-        self.assertEquals(program_str, 'regresa mi_var;')
+        self.assertEquals(program_str, 'return mi_var;')
 
     def test_integer_in_let_and_return_statement(self) -> None:
         program: Program = Program(statements=[
@@ -66,7 +66,7 @@ class ASTTest(TestCase):
                 )
             ),
             ReturnStatement(
-                token=Token(TokenType.RETURN, literal="regresa"),
+                token=Token(TokenType.RETURN, literal="return"),
                 return_value=Identifier(
                     token=Token(TokenType.IDENT, literal="mi_num"),
                     value="mi_num"
@@ -76,4 +76,4 @@ class ASTTest(TestCase):
 
         program_str = str(program)
 
-        self.assertEquals(program_str, 'var mi_num = 5;regresa mi_num;')
+        self.assertEquals(program_str, 'var mi_num = 5;return mi_num;')

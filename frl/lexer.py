@@ -94,9 +94,14 @@ class Lexer:
             return Token(token_type, literal)
         # Token for read numbers
         elif self._is_number(self._character):
-            literal = self._read_number()
+            if self._peek_character() == '.':
+                literal = self._read_float()
 
-            return Token(TokenType.INT, literal)
+                return Token(TokenType.FLOAT, literal)
+            else:
+                literal = self._read_number()
+
+                return Token(TokenType.INT, literal)
         # Illegal Token
         else:
             token = Token(TokenType.ILLEGAL, self._character)
@@ -104,9 +109,12 @@ class Lexer:
 
         return token
 
+    def _is_float(self, character: str) -> bool:
+        return bool(match(r'[\d\.]+', character))
+
     def _is_letter(self, character: str) -> bool:
         # Expresión regular para obtener todas las letras del alfabeto español
-        return bool(match(r'^[a-záéíóúA-ZÁÉÍÓÚñÑ_]$', character))
+        return bool(match(r'^[a-zA-Z_]$', character))
 
     def _is_number(self, character: str) -> bool:
         # Expresión regular para objeter todos los digitos
@@ -136,6 +144,15 @@ class Lexer:
 
         self._position = self._read_position
         self._read_position += 1
+
+    def _read_float(self) -> str:
+        initial_position = self._position
+        
+        # while self._character != ';':
+        while self._is_float(self._character):
+            self._read_character()
+
+        return self._source[initial_position:self._position]
 
     def _read_identifier(self) -> str:
         initial_position = self._position

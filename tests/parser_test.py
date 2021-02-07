@@ -22,7 +22,7 @@ from frl.ast import (
 class ParserTest(TestCase):
 
     def test_pase_program(self) -> None:
-        source: str = 'variable x = 5;'
+        source: str = 'var x = 5;'
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
 
@@ -75,14 +75,13 @@ class ParserTest(TestCase):
         parser: Parser = Parser(lexer)
 
         program: Program = parser.parse_program()
-        # print(parser.errors)
 
         self.assertEquals(len(parser.errors), 1)
 
     def test_return_statement(self) -> None:
         source: str = '''
-            regresa 5;
-            regresa foo;
+            return 5;
+            return foo;
         '''
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
@@ -91,7 +90,7 @@ class ParserTest(TestCase):
 
         self.assertEquals(len(program.statements), 2)
         for statement in program.statements:
-            self.assertEquals(statement.token_literal(), 'regresa')
+            self.assertEquals(statement.token_literal(), 'return')
             self.assertIsInstance(statement, ReturnStatement)
 
     def test_identifier_expression(self) -> None:

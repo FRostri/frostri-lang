@@ -101,8 +101,8 @@ class Parser:
 
     def _expected_token_error(self, token_type: TokenType) -> None:
         assert self._peek_token is not None
-        error = f'Se esperaba que el siguiente token fuera {token_type} ' + \
-                f'pero se obtuvo {self._peek_token.token_type}'
+        error = f'The next token was expected to be {token_type}, but ' + \
+                f'{self._peek_token.token_type} was obtained.'
         self._errors.append(error)
 
     def _parse_expression(self, precedence: Precedence) -> Optional[Expression]:
@@ -129,8 +129,8 @@ class Parser:
         try:
             integer.value = int(self._current_token.literal)
         except ValueError:
-            message = f'No se ha podido parsear {self._current_token.literal} ' + \
-                'como entero.'
+            message = f'Could not parse {self._current_token.literal} ' + \
+                'as integer.'
             self._errors.append(message)
 
             return None

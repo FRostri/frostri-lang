@@ -11,11 +11,11 @@ EOF_TOKEN: Token = Token(TokenType.EOF, '')
 
 
 def start_repl() -> None:
-    while (source := input(f'{colors.CYAN}>>{colors.RESET} ')) != 'salir()':
+    while (source := input(f'{colors.CYAN}>>{colors.RESET} ')) != 'exit()':
         lexer: Lexer = Lexer(source)
 
         if source == 'help':
-            print("Esta es la ayuda")
+            print("This is the help")
         else:
             while (token := lexer.next_token()) != EOF_TOKEN:
                 print(token)
