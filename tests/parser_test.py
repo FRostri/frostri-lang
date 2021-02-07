@@ -11,6 +11,7 @@ from frl.parser import Parser
 from frl.ast import (
     Expression,
     ExpressionStatement,
+    Float,
     Identifier,
     Integer,
     LetStatement,
@@ -120,6 +121,20 @@ class ParserTest(TestCase):
         assert expression_statement.expression is not None
         self._test_literal_expression(expression_statement.expression, 5)
 
+    def test_float_expressions(self) -> None:
+        source: str = '1.5;'
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
+        self._test_program_statements(parser, program)
+
+        expression_statement = cast(ExpressionStatement, program.statements[0])
+
+        assert expression_statement.expression is not None
+        self._test_literal_expression(expression_statement.expression, 1.5)
+
     def _test_program_statements(self,
                                  parser: Parser,
                                  program: Program,
@@ -137,6 +152,8 @@ class ParserTest(TestCase):
             self._test_identifier(expression, expected_value)
         elif value_type == int:
             self._test_integer(expression, expected_value)
+        elif value_type == float:
+            self._test_float(expression, expected_value)
         else:
             self.fail(f'Unhandled type of expression. Got={value_type}')
 
@@ -157,3 +174,12 @@ class ParserTest(TestCase):
         integer = cast(Integer, expression)
         self.assertEquals(integer.value, expected_value)
         self.assertEquals(integer.token.literal, str(expected_value))
+
+    def _test_float(self,
+                      expression: Expression,
+                      expected_value: float) -> None:
+        self.assertIsInstance(expression, Float)
+        
+        float_ = cast(Float, expression)
+        self.assertEquals(float_.value, expected_value)
+        self.assertEquals(float_.token.literal, str(expected_value))

@@ -313,6 +313,7 @@ class LexerTest(TestCase):
     def test_assigment_with_floats(self) -> None:
         source: str = '''
             var float_num = 1.5;
+            var pepe = 4.2;
         '''
         lexer: Lexer = Lexer(source)
 

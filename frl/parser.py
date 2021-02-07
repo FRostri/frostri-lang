@@ -12,6 +12,7 @@ from typing import (
 from frl.ast import (
     Expression,
     ExpressionStatement,
+    Float,
     Identifier,
     Integer,
     LetStatement,
@@ -116,6 +117,21 @@ class Parser:
 
         return left_expression
 
+    def _parse_float(self) -> Optional[Float]:
+        assert self._current_token is not None
+        float_ = Float(token=self._current_token)
+
+        try:
+            float_.value = float(self._current_token.literal)
+        except ValueError:
+            message = f'Could not parse {self._current_token.literal} ' + \
+                'as float'
+            self._errors.append(message)
+
+            return None
+
+        return float_
+
     def _parse_identifier(self) -> Identifier:
         assert self._current_token is not None
 
@@ -183,4 +199,5 @@ class Parser:
         return {
             TokenType.IDENT: self._parse_identifier,
             TokenType.INT: self._parse_integer,
+            TokenType.FLOAT: self._parse_float,
         }
