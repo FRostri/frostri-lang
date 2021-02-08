@@ -2,6 +2,7 @@ from typing import (
     cast,
     List,
     Any,
+    Tuple,
     Type,
 )
 from unittest import TestCase
@@ -13,8 +14,10 @@ from frl.ast import (
     ExpressionStatement,
     Float,
     Identifier,
+    Infix,
     Integer,
     LetStatement,
+    Prefix,
     Program,
     ReturnStatement,
 )
@@ -135,10 +138,93 @@ class ParserTest(TestCase):
         assert expression_statement.expression is not None
         self._test_literal_expression(expression_statement.expression, 1.5)
 
+    def test_prefix_expression(self) -> None:
+        source: str = '!5; -15'
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
+        self._test_program_statements(parser, program, expected_statement_count=2)
+
+        for statement, (expected_operator, expected_value) in zip(
+            program.statements, [('!', 5), ('-', 15)]):
+            statement = cast(ExpressionStatement, statement)
+            self.assertIsInstance(statement.expression, Prefix)
+            prefix = cast(Prefix, statement.expression)
+            self.assertEquals(prefix.operator, expected_operator)
+
+            assert prefix.right is not None
+            self._test_literal_expression(prefix.right, expected_value)
+
+    def test_infix_expressions(self) -> None:
+        source: str = '''
+            5 + 5;
+            5 - 5;
+            5 * 5;
+            5 / 5;
+            5 > 5;
+            5 >= 5;
+            5 < 5;
+            5 <= 5;
+            5 == 5;
+            5 === 5;
+            5 != 5;
+            5 !== 5;
+        '''
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
+        self._test_program_statements(parser, program, expected_statement_count=12)
+
+        expected_operators_and_values: List[Tuple[Any, str, Any]] = [
+            (5, '+', 5),
+            (5, '-', 5),
+            (5, '*', 5),
+            (5, '/', 5),
+            (5, '>', 5),
+            (5, '>=', 5),
+            (5, '<', 5),
+            (5, '<=', 5),
+            (5, '==', 5),
+            (5, '===', 5),
+            (5, '!=', 5),
+            (5, '!==', 5),
+        ]
+
+        for statement, (expected_left, expected_operator, expected_right) in zip(
+                program.statements, expected_operators_and_values):
+            statement = cast(ExpressionStatement, statement)
+            assert statement.expression is not None
+            self.assertIsInstance(statement.expression, Infix)
+            self._test_infix_expression(statement.expression,
+                                        expected_left,
+                                        expected_operator,
+                                        expected_right)
+
+    def _test_infix_expression(self,
+                               expression: Expression,
+                               expected_left: Any,
+                               expected_operator: str,
+                               expected_right: Any):
+        infix = cast(Infix, expression)
+
+        assert infix.left is not None
+        self._test_literal_expression(infix.left, expected_left)
+
+        self.assertEquals(infix.operator, expected_operator)
+
+        assert infix.right is not None
+        self._test_literal_expression(infix.right, expected_right)
+
     def _test_program_statements(self,
                                  parser: Parser,
                                  program: Program,
                                  expected_statement_count: int = 1) -> None:
+        if parser.errors:
+            print(parser.errors)
         self.assertEquals(len(parser.errors), 0)
         self.assertEquals(len(program.statements), expected_statement_count)
         self.assertIsInstance(program.statements[0], ExpressionStatement)

@@ -148,7 +148,6 @@ class Lexer:
     def _read_float(self) -> str:
         initial_position = self._position
         
-        # while self._character != ';':
         while self._is_float(self._character):
             self._read_character()
 
