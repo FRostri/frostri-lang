@@ -1,5 +1,5 @@
 # Calling IntEnum for make the precedence (this is like you are doing a math
-# expression an you have 2 + 4 * 3 - (3 - 1) when first we resolve the 
+# expression an you have 2 + 4 * 3 - (3 - 1) when first we resolve the
 # operation in the paren and then the product and so on to the end)
 from enum import IntEnum
 from typing import (
@@ -10,6 +10,7 @@ from typing import (
 )
 
 from frl.ast import (
+    Boolean,
     Expression,
     ExpressionStatement,
     Float,
@@ -97,6 +98,11 @@ class Parser:
         self._peek_token = self._lexer.next_token()
 
     def _current_precedence(self) -> Precedence:
+        """
+        To know which is the precedence of the current token.
+
+        :rtype Precedence: Return the precedence of the current token.
+        """
         assert self._current_token is not None
         try:
             return PRECEDENCES[self._current_token.token_type]
@@ -104,6 +110,13 @@ class Parser:
             return Precedence.LOWEST
 
     def _expected_token(self, token_type: TokenType) -> bool:
+        """
+        To find out which token follow and if its type is equals to the
+        _peek_token function.
+
+        :param token_type TokenType: The type of the following token
+        :rtype bool: return true if the _peek_token is equals to the token_type
+        """
         assert self._peek_token is not None
         if self._peek_token.token_type == token_type:
             self._advance_tokens()
@@ -117,7 +130,8 @@ class Parser:
         assert self._current_token is not None
         expression_statement = ExpressionStatement(token=self._current_token)
 
-        expression_statement.expression = self._parse_expression(Precedence.LOWEST)
+        expression_statement.expression = self._parse_expression(
+            Precedence.LOWEST)
 
         assert self._peek_token is not None
         if self._peek_token.token_type == TokenType.SEMICOLON:
@@ -130,6 +144,12 @@ class Parser:
         error = f'The next token was expected to be {token_type}, but ' + \
                 f'{self._peek_token.token_type} was obtained.'
         self._errors.append(error)
+
+    def _parse_boolean(self) -> Boolean:
+        assert self._current_token is not None
+
+        return Boolean(token=self._current_token,
+                       value=self._current_token.token_type == TokenType.TRUE)
 
     def _parse_expression(self, precedence: Precedence) -> Optional[Expression]:
         assert self._current_token is not None
@@ -172,6 +192,16 @@ class Parser:
             return None
 
         return float_
+
+    def _parse_grouped_expression(self) -> Optional[Expression]:
+        self._advance_tokens()
+
+        expression = self._parse_expression(Precedence.LOWEST)
+
+        if not self._expected_token(TokenType.RPAREN):
+            return None
+
+        return expression
 
     def _parse_identifier(self) -> Identifier:
         assert self._current_token is not None
@@ -283,9 +313,12 @@ class Parser:
 
     def _register_prefix_fns(self) -> PrefixParseFns:
         return {
+            TokenType.FALSE: self._parse_boolean,
             TokenType.IDENT: self._parse_identifier,
             TokenType.INT: self._parse_integer,
             TokenType.FLOAT: self._parse_float,
+            TokenType.LPAREN: self._parse_grouped_expression,
             TokenType.MINUS: self._parse_prefix_expression,
             TokenType.NEGATION: self._parse_prefix_expression,
+            TokenType.TRUE: self._parse_boolean,
         }

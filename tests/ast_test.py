@@ -80,12 +80,25 @@ class ASTTest(TestCase):
 
         self.assertEquals(program_str, 'var mi_num = 5;return mi_num;')
 
-    def test_float_with_expressionstatement(self) -> None:
+    def test_float_with_letstatement(self) -> None:
         program: Program = Program(statements=[
-            ExpressionStatement(
-                token=Token(TokenType.FLOAT, literal='1.5'),
-                expression=Float(
-                    token=Token(TokenType.FLOAT, literal='1.5'),
+            LetStatement(
+                token=Token(
+                    TokenType.LET,
+                    literal="var"
+                ),
+                name=Identifier(
+                    token=Token(
+                        TokenType.IDENT,
+                        literal="mi_float"
+                    ),
+                    value="mi_float"
+                ),
+                value=Float(
+                    token=Token(
+                        TokenType.FLOAT,
+                        literal="1.5"
+                    ),
                     value=1.5
                 )
             )
@@ -93,4 +106,4 @@ class ASTTest(TestCase):
 
         program_str = str(program)
 
-        self.assertEquals(program_str, '1.5;')
+        self.assertEquals(program_str, 'var mi_float = 1.5;')

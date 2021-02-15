@@ -105,7 +105,7 @@ class ExpressionStatement(Statement):
         self.expression = expression
 
     def __str__(self) -> str:
-        return f'{str(self.expression)};'
+        return str(self.expression)
 
 
 class Integer(Expression):
@@ -159,4 +159,16 @@ class Infix(Expression):
         self.right = right
 
     def __str__(self) -> str:
-        return f'({str(self.left)} {self.operator} {self.right};)'
+        return f'({str(self.left)} {self.operator} {str(self.right)})'
+
+
+class Boolean(Expression):
+
+    def __init__(self,
+                 token: Token,
+                 value: Optional[bool] = None) -> None:
+        super().__init__(token)
+        self.value = value
+
+    def __str__(self) -> str:
+        return self.token_literal()
