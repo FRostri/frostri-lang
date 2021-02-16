@@ -12,9 +12,11 @@ from frl.parser import Parser
 from frl.ast import (
     Block,
     Boolean,
+    Call,
     Expression,
     ExpressionStatement,
     Float,
+    Function,
     Identifier,
     If,
     Infix,
@@ -42,18 +44,35 @@ class ParserTest(TestCase):
         source: str = '''
             var x = 5;
             var y = 10;
-            var foo = 20;
+            var foo = 2.5;
+            var bar = true;
         '''
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
 
         program: Program = parser.parse_program()
 
-        self.assertEqual(len(program.statements), 3)
+        self.assertEqual(len(program.statements), 4)
 
-        for statement in program.statements:
+        expected_identifiers_and_values: List[Tuple[str, Any]] = [
+            ('x', 5),
+            ('y', 10),
+            ('foo', 2.5),
+            ('bar', True),
+        ]
+
+        for statement, (expected_identifier, expected_value)in zip(
+            program.statements, expected_identifiers_and_values):
             self.assertEqual(statement.token_literal(), 'var')
             self.assertIsInstance(statement, LetStatement)
+
+            let_statement = cast(LetStatement, statement)
+
+            assert let_statement.name is not None
+            self._test_identifier(let_statement.name, expected_identifier)
+
+            assert let_statement.value is not None
+            self._test_literal_expression(let_statement.value, expected_value)
 
     def test_name_in_let_statements(self) -> None:
         source: str = '''
@@ -89,16 +108,24 @@ class ParserTest(TestCase):
         source: str = '''
             return 5;
             return foo;
+            return true;
+            return false;
+            return 3.7;
         '''
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
 
         program: Program = parser.parse_program()
 
-        self.assertEquals(len(program.statements), 2)
-        for statement in program.statements:
-            self.assertEquals(statement.token_literal(), 'return')
-            self.assertIsInstance(statement, ReturnStatement)
+        self.assertEquals(len(program.statements), 5)
+
+        expected_return_values: List[Any] = [
+            5,
+            'foo',
+            True,
+            False,
+            3.7,
+        ]
 
     def test_identifier_expression(self) -> None:
         source: str = 'foobar;'
@@ -278,6 +305,10 @@ class ParserTest(TestCase):
             ('(5 + 5) * 2;', '((5 + 5) * 2)', 1),
             ('2 / (5 + 5);', '(2 / (5 + 5))', 1),
             ('-(5 + 5);', '(-(5 + 5))', 1),
+            ('a + suma(b * c) + d;', '((a + suma((b * c))) + d)', 1),
+            ('suma(a, b, 1, 2 * 3, 4 + 5, suma(6, 7 * 8));',
+             'suma(a, b, 1, (2 * 3), (4 + 5), suma(6, (7 * 8)))', 1),
+            ('suma(a + b + c * d / f + g);', 'suma((((a + b) + ((c * d) / f)) + g))', 1),
         ]
 
         for source, expected_result, expected_statement_count in test_sources:
@@ -288,6 +319,27 @@ class ParserTest(TestCase):
 
             self._test_program_statements(parser, program, expected_statement_count)
             self.assertEquals(str(program), expected_result)
+
+    def test_call_expression(self) -> None:
+        source: str = 'suma(1, 2 * 3, 4 + 5);'
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
+        self._test_program_statements(parser, program)
+        
+        call = cast(Call, cast(ExpressionStatement,
+                               program.statements[0]).expression)
+        self.assertIsInstance(call, Call)
+        self._test_identifier(call.function, 'suma')
+
+        # Test arguments
+        assert call.arguments is not None
+        self.assertEquals(len(call.arguments), 3)
+        self._test_literal_expression(call.arguments[0], 1)
+        self._test_infix_expression(call.arguments[1], 2, '*', 3)
+        self._test_infix_expression(call.arguments[2], 4, '+', 5)
 
     def test_if_expression(self) -> None:
         source: str = 'if (x < y) { z }'
@@ -315,17 +367,23 @@ class ParserTest(TestCase):
     def test_if_else_expression(self) -> None:
         source: str = '''
             if (x < y) {
-                z
+                z;
             } else {
                 a;
                 b;
+            };
+
+            if (e != q) {
+                q;
+            } else {
+                e;
             }'''
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
 
         program: Program = parser.parse_program()
 
-        self._test_program_statements(parser, program)
+        self._test_program_statements(parser, program, expected_statement_count=2)
 
         # Test correct node type
         if_expression = cast(If, cast(ExpressionStatement, program.statements[0]).expression)
@@ -342,6 +400,62 @@ class ParserTest(TestCase):
         # Test alternative
         assert if_expression.alternative is not None
         self._test_block(if_expression.alternative, 2, ["a", "b"])
+
+    def test_function_literal(self) -> None:
+        source: str = '''
+            fun sum(x, y) { x + y; };
+            fun(x, y) { x + y; };
+            fun(x, y) {
+                x + y;
+            };
+            '''
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
+        self._test_program_statements(parser, program, expected_statement_count=3)
+
+        function_literal = cast(Function, cast(ExpressionStatement,
+                                               program.statements[0]).expression)
+        self.assertIsInstance(function_literal, Function)
+
+        # Test params
+        self.assertEquals(len(function_literal.parameters), 2)
+        self._test_literal_expression(function_literal.parameters[0], 'x')
+        self._test_literal_expression(function_literal.parameters[1], 'y')
+
+        # test body
+        assert function_literal.body is not None
+        self.assertEquals(len(function_literal.body.statements), 1)
+
+        body = cast(ExpressionStatement, function_literal.body.statements[0])
+        assert body.expression is not None
+        self._test_infix_expression(body.expression, 'x', '+', 'y')
+
+    def test_function_parameters(self) -> None:
+        tests = [
+            {'input': 'fun sum() {};',
+             'expected_params': []},
+            {'input': 'fun(x) {};',
+             'expected_params': ['x']},
+            {'input': 'fun sum(x, y, z) {};',
+             'expected_params': ['x', 'y', 'z']},
+        ]
+
+        for test in tests:
+            lexer: Lexer = Lexer(test['input']) # type: ignore
+            parser: Parser = Parser(lexer)
+
+            program: Program = parser.parse_program()
+
+            function = cast(Function, cast(ExpressionStatement,
+                                           program.statements[0]).expression)
+
+            self.assertEquals(len(function.parameters), len(test['expected_params']))
+
+            for idx, param in enumerate(test['expected_params']):
+                self._test_literal_expression(function.parameters[idx], param)
 
     def _test_block(self,
                     block: Block,
