@@ -29,37 +29,37 @@ class Object(ABC):
 class Integer(Object):
 
     def __init__(self, value: int) -> None:
-        self._value = value
+        self.value = value
 
     def type(self) -> ObjectType:
         return ObjectType.INTEGERS
 
     def inspect(self) -> str:
-        return str(self._value)
+        return str(self.value)
 
 
 class Float(Object):
 
     def __init__(self, value: float) -> None:
-        self._value = value
+        self.value = value
 
     def type(self) -> ObjectType:
         return ObjectType.FLOAT
 
     def inspect(self) -> str:
-        return str(self._value)
+        return str(self.value)
 
 
 class Boolean(Object):
 
     def __init__(self, value: bool) -> None:
-        self._value = value
+        self.value = value
 
     def type(self) -> ObjectType:
         return ObjectType.BOOLEAN
 
     def inspect(self) -> str:
-        return 'true' if self._value else 'false'
+        return 'true' if self.value else 'false'
 
 
 class Null(Object):

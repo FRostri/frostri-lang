@@ -3,6 +3,7 @@ from os import system, name
 from typing import List
 
 from frl.ast import Program
+from frl.evaluator import evaluate
 from frl.lexer import Lexer
 from frl.parser import Parser
 from frl.token import (
@@ -47,4 +48,7 @@ def start_repl() -> None:
             _print_parse_errors(parser.errors)
             continue
 
-        print(program)
+        evaluated = evaluate(program)
+
+        if evaluated is not None:
+            print(evaluated.inspect())
