@@ -26,6 +26,14 @@ class EvaluatorTest(TestCase):
             ('15', 15),
             ('-4', -4),
             ('-50', -50),
+            ('5 + 5', 10),
+            ('5 - 10', -5),
+            ('2 * 2 * 2 * 2', 16),
+            ('2 * 5 - 3', 7),
+            ('50 / 2', 25),
+            ('2 * (5 - 3)', 4),
+            ('(2 + 7) / 3', 3),
+            ('-50 / 2 * 2 + 10', -40),
         ]
 
         for source, expected in tests:
@@ -34,12 +42,12 @@ class EvaluatorTest(TestCase):
 
     def test_float_evaluator(self) -> None:
         tests: List[Tuple[str, float]] = [
-            ('5.9', 5.9),
-            ('0.2', 0.2),
-            ('1.3', 1.3),
-            ('34.1', 34.1),
-            ('-12.34', -12.34),
-            ('-0.192', -0.192),
+            ('5.0', 5.0),
+            ('10.0', 10.0),
+            ('-5.0', -5.0),
+            ('-10.0', -10.0),
+            ('5 / 2', 2.5),
+            ('2.5 * 2.0 + 7.0', 12.0),
         ]
 
         for source, expected in tests:
@@ -50,6 +58,26 @@ class EvaluatorTest(TestCase):
         tests: List[Tuple[str, bool]] = [
             ('true', True),
             ('false', False),
+            ('1 < 2', True),
+            ('1 <= 2', True),
+            ('2 > 2', False),
+            ('2 >= 2', True),
+            ('1 < 1', False),
+            ('1 >= 2', False),
+            ('1 > 1', False),
+            ('0.3 <= 0.2', False),
+            ('1 == 1', True),
+            ('2 == 1', False),
+            ('1 != 1', False),
+            ('1 != 5', True),
+            ('true == true', True),
+            ('false == false', True),
+            ('true == false', False),
+            ('true != false', True),
+            ('(1 < 2) == true', True),
+            ('(1 < 2) == false', False),
+            ('(1 > 2) == true', False),
+            ('(1 > 2) == false', True),
         ]
 
         for source, expected in tests:
@@ -89,7 +117,7 @@ class EvaluatorTest(TestCase):
     def _test_float_object(self, evaluated: Object, expected: float) -> None:
         self.assertIsInstance(evaluated, Float)
 
-        evaluated = cast(Integer, evaluated)
+        evaluated = cast(Float, evaluated)
         self.assertEquals(evaluated.value, expected)
 
     def _test_integer_object(self, evaluated: Object, expected: int) -> None:

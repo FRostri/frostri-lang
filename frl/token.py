@@ -15,7 +15,6 @@ from typing import (
 class TokenType(Enum):
     ASSIGN = auto()  # =
     COMMA = auto()  # ,
-    DIFF = auto()  # !==
     DIVISION = auto()  # /
     ELSE = auto()  # else
     EOF = auto()  # final del archivo
@@ -43,7 +42,6 @@ class TokenType(Enum):
     RETURN = auto()  # return
     RPAREN = auto()  # )
     SEMICOLON = auto()  # ;
-    SIMILAR = auto()  # ===
     TRUE = auto()  # true
 
 

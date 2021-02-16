@@ -52,9 +52,7 @@ class Precedence(IntEnum):
 
 PRECEDENCES: Dict[TokenType, Precedence] = {
     TokenType.EQ: Precedence.EQUALS,
-    TokenType.SIMILAR: Precedence.EQUALS,
     TokenType.NOT_EQ: Precedence.EQUALS,
-    TokenType.DIFF: Precedence.EQUALS,
     TokenType.LT: Precedence.LESSGREATER,
     TokenType.LE: Precedence.LESSGREATER,
     TokenType.GT: Precedence.LESSGREATER,
@@ -451,8 +449,6 @@ class Parser:
             TokenType.GE: self._parse_infix_expression,
             TokenType.EQ: self._parse_infix_expression,
             TokenType.NOT_EQ: self._parse_infix_expression,
-            TokenType.SIMILAR: self._parse_infix_expression,
-            TokenType.DIFF: self._parse_infix_expression,
             TokenType.LPAREN: self._parse_call,
         }
 

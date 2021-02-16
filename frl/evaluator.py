@@ -2,6 +2,7 @@ from typing import (
     cast,
     List,
     Optional,
+    Type,
 )
 
 import frl.ast as ast
@@ -11,6 +12,7 @@ from frl.object import (
     Integer,
     Null,
     Object,
+    ObjectType,
 )
 
 
@@ -20,7 +22,7 @@ NULL = Null()
 
 
 def evaluate(node: ast.ASTNode) -> Optional[Object]:
-    node_type = type(node)
+    node_type: Type = type(node)
 
     if node_type == ast.Program:
         node = cast(ast.Program, node)
@@ -54,6 +56,15 @@ def evaluate(node: ast.ASTNode) -> Optional[Object]:
 
         assert right is not None
         return _evaluate_prefix_expression(node.operator, right)
+    elif node_type == ast.Infix:
+        node = cast(ast.Infix, node)
+
+        assert node.left is not None and node.right is not None
+        left = evaluate(node.left)
+        right = evaluate(node.right)
+
+        assert left is not None and right is not None
+        return _evaluate_infix_expression(node.operator, left, right)
 
     return None
 
@@ -76,6 +87,103 @@ def _evaluate_bang_operator_expression(right: Object) -> Object:
         return TRUE
     else:
         return FALSE
+
+
+def _evaluate_infix_expression(operator: str,
+                               left: Object,
+                               right: Object) -> Object:
+    if left.type() == ObjectType.INTEGERS \
+            and right.type() == ObjectType.INTEGERS:
+        return _evaluate_integer_infix_expression(operator, left, right)
+    elif left.type() == ObjectType.FLOAT \
+            and right.type() == ObjectType.FLOAT:
+        return _evaluate_float_infix_expression(operator, left, right)
+    elif left.type() == ObjectType.BOOLEAN \
+            and right.type() == ObjectType.BOOLEAN:
+        return _evaluate_bool_infix_expression(operator, left, right)
+    else:
+        return NULL
+
+
+def _evaluate_bool_infix_expression(operator: str,
+                                    left: Object,
+                                    right: Object
+                                    ) -> Object:
+
+    left_value: bool = cast(Boolean, left).value
+    right_value: bool = cast(Boolean, right).value
+
+    if operator == '==':
+        return _to_boolean_object(left_value is right_value)
+    elif operator == '!=':
+        return _to_boolean_object(left_value is not right_value)
+    else:
+        return NULL
+
+
+def _evaluate_float_infix_expression(operator: str,
+                                     left: Object,
+                                     right: Object
+                                     ) -> Object:
+
+    left_value: float = cast(Float, left).value
+    right_value: float = cast(Float, right).value
+
+    if operator == '+':
+        return Float(left_value + right_value)
+    elif operator == '-':
+        return Float(left_value - right_value)
+    elif operator == '*':
+        return Float(left_value * right_value)
+    elif operator == '/':
+        return Float(left_value / right_value)
+    elif operator == '<':
+        return _to_boolean_object(left_value < right_value)
+    elif operator == '>':
+        return _to_boolean_object(left_value > right_value)
+    elif operator == '>=':
+        return _to_boolean_object(left_value >= right_value)
+    elif operator == '<=':
+        return _to_boolean_object(left_value <= right_value)
+    elif operator == '==':
+        return _to_boolean_object(left_value == right_value)
+    elif operator == '!=':
+        return _to_boolean_object(left_value != right_value)
+    else:
+        return NULL
+
+
+def _evaluate_integer_infix_expression(operator: str,
+                                       left: Object,
+                                       right: Object) -> Object:
+    left_value: int = cast(Integer, left).value
+    right_value: int = cast(Integer, right).value
+
+    if operator == '+':
+        return Integer(left_value + right_value)
+    elif operator == '-':
+        return Integer(left_value - right_value)
+    elif operator == '/':
+        if left_value % right_value == 0:
+            return Integer(left_value // right_value)
+        else:
+            return _evaluate_float_infix_expression(operator, left, right)
+    elif operator == '*':
+        return Integer(left_value * right_value)
+    elif operator == '<':
+        return _to_boolean_object(left_value < right_value)
+    elif operator == '>':
+        return _to_boolean_object(left_value > right_value)
+    elif operator == '==':
+        return _to_boolean_object(left_value == right_value)
+    elif operator == '!=':
+        return _to_boolean_object(left_value != right_value)
+    elif operator == '<=':
+        return _to_boolean_object(left_value <= right_value)
+    elif operator == '>=':
+        return _to_boolean_object(left_value >= right_value)
+    else:
+        return NULL
 
 
 def _evaluate_minus_operator_expression(right: Object) -> Object:

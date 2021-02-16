@@ -24,11 +24,7 @@ class Lexer:
         # Token '='
         if match(r'^=$', self._character):
             if self._peek_character() == '=':
-                if self._peek_character(2) == '=':
-                    token = self._make_triple_character_token(
-                        TokenType.SIMILAR)
-                else:
-                    token = self._make_two_character_token(TokenType.EQ)
+                token = self._make_two_character_token(TokenType.EQ)
             else:
                 token = Token(TokenType.ASSIGN, self._character)
         # Token '+'
@@ -79,11 +75,7 @@ class Lexer:
         # Token '!'
         elif match(r'^!$', self._character):
             if self._peek_character() == '=':
-                if self._peek_character(2) == '=':
-                    token = self._make_triple_character_token(
-                        TokenType.DIFF)
-                else:
-                    token = self._make_two_character_token(TokenType.NOT_EQ)
+                token = self._make_two_character_token(TokenType.NOT_EQ)
             else:
                 token = Token(TokenType.NEGATION, self._character)
         # Token for any letter
@@ -116,15 +108,6 @@ class Lexer:
     def _is_number(self, character: str) -> bool:
         # Expresión regular para objeter todos los digitos
         return bool(match(r'^\d$', character))
-
-    def _make_triple_character_token(self, token_type: TokenType) -> Token:
-        first = self._character
-        self._read_character()
-        second = self._character
-        self._read_character()
-        third = self._character
-
-        return Token(token_type, f'{first}{second}{third}')
 
     def _make_two_character_token(self, token_type: TokenType) -> Token:
         prefix = self._character
