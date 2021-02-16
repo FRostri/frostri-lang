@@ -61,8 +61,8 @@ class Program(ASTNode):
 class Identifier(Expression):
 
     def __init__(self,
-            token: Token,
-            value: str) -> None:
+                 token: Token,
+                 value: str) -> None:
         super().__init__(token)
         self.value = value
 
@@ -87,9 +87,9 @@ class LetStatement(Statement):
 class ReturnStatement(Statement):
 
     def __init__(self,
-                token: Token,
-                return_value: Optional[Expression] = None) -> None:
-        super().__init__(token)        
+                 token: Token,
+                 return_value: Optional[Expression] = None) -> None:
+        super().__init__(token)
         self.return_value = return_value
 
     def __str__(self) -> str:
@@ -133,7 +133,7 @@ class Float(Expression):
 
 
 class Prefix(Expression):
-    
+
     def __init__(self,
                  token: Token,
                  operator: str,
@@ -222,7 +222,8 @@ class Function(Expression):
         self.body = body
 
     def __str__(self) -> str:
-        param_list: List[str] = [str(parameter) for parameter in self.parameters]
+        param_list: List[str] = [str(parameter)
+                                 for parameter in self.parameters]
 
         params: str = ', '.join(param_list)
 

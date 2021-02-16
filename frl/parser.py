@@ -268,7 +268,6 @@ class Parser:
 
         return function
 
-
     def _parse_function_parameters(self, ident) -> List[Identifier]:
         params: List[Identifier] = []
 
@@ -415,7 +414,8 @@ class Parser:
 
         self._advance_tokens()
 
-        return_statement.return_value = self._parse_expression(Precedence.LOWEST)
+        return_statement.return_value = self._parse_expression(
+            Precedence.LOWEST)
 
         assert self._peek_token is not None
         if self._peek_token.token_type == TokenType.SEMICOLON:

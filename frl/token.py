@@ -13,38 +13,38 @@ from typing import (
 
 @unique
 class TokenType(Enum):
-    ASSIGN = auto() # =
-    COMMA = auto() # ,
-    DIFF = auto() # !==
-    DIVISION = auto() # /
-    ELSE = auto() # else
-    EOF = auto() # final del archivo
-    EQ = auto() # ==
-    FALSE = auto() # false
-    FLOAT = auto() # 3.6
-    FUNCTION = auto() # fun
-    GE = auto() # >=
-    GT = auto() # >
-    IDENT = auto() # {variable}
-    IF = auto() # if
-    ILLEGAL = auto() # Cualquier caracter que no hayamos definido
-    INT = auto() # {numero}
-    LBRACE = auto() # {
-    LET = auto() # var
-    LPAREN = auto() # (
-    LE = auto() # <=
-    LT = auto() # <
-    MINUS = auto() # -
-    MULTIPLICATION = auto() # *
-    NEGATION = auto() # !
-    NOT_EQ = auto() # !=
-    PLUS = auto() # +
-    RBRACE = auto() # }
-    RETURN = auto() # return
-    RPAREN = auto() # )
-    SEMICOLON = auto() # ;
-    SIMILAR = auto() # ===
-    TRUE = auto() # true
+    ASSIGN = auto()  # =
+    COMMA = auto()  # ,
+    DIFF = auto()  # !==
+    DIVISION = auto()  # /
+    ELSE = auto()  # else
+    EOF = auto()  # final del archivo
+    EQ = auto()  # ==
+    FALSE = auto()  # false
+    FLOAT = auto()  # 3.6
+    FUNCTION = auto()  # fun
+    GE = auto()  # >=
+    GT = auto()  # >
+    IDENT = auto()  # {variable}
+    IF = auto()  # if
+    ILLEGAL = auto()  # Cualquier caracter que no hayamos definido
+    INT = auto()  # {numero}
+    LBRACE = auto()  # {
+    LET = auto()  # var
+    LPAREN = auto()  # (
+    LE = auto()  # <=
+    LT = auto()  # <
+    MINUS = auto()  # -
+    MULTIPLICATION = auto()  # *
+    NEGATION = auto()  # !
+    NOT_EQ = auto()  # !=
+    PLUS = auto()  # +
+    RBRACE = auto()  # }
+    RETURN = auto()  # return
+    RPAREN = auto()  # )
+    SEMICOLON = auto()  # ;
+    SIMILAR = auto()  # ===
+    TRUE = auto()  # true
 
 
 class Token(NamedTuple):
