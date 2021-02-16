@@ -36,7 +36,7 @@ class Integer(Object):
 
     def inspect(self) -> str:
         return str(self._value)
-    
+
 
 class Float(Object):
 
