@@ -17,15 +17,16 @@ class TokenType(Enum):
     COMMA = auto() # ,
     DIFF = auto() # !==
     DIVISION = auto() # /
-    ELSE = auto() # si_no
+    ELSE = auto() # else
     EOF = auto() # final del archivo
     EQ = auto() # ==
-    FALSE = auto() # falso
-    FUNCTION = auto() # proceso
+    FALSE = auto() # false
+    FLOAT = auto() # 3.6
+    FUNCTION = auto() # fun
     GE = auto() # >=
     GT = auto() # >
     IDENT = auto() # {variable}
-    IF = auto() # si
+    IF = auto() # if
     ILLEGAL = auto() # Cualquier caracter que no hayamos definido
     INT = auto() # {numero}
     LBRACE = auto() # {
@@ -39,11 +40,11 @@ class TokenType(Enum):
     NOT_EQ = auto() # !=
     PLUS = auto() # +
     RBRACE = auto() # }
-    RETURN = auto() # regresa
+    RETURN = auto() # return
     RPAREN = auto() # )
     SEMICOLON = auto() # ;
     SIMILAR = auto() # ===
-    TRUE = auto() # verdadero
+    TRUE = auto() # true
 
 
 class Token(NamedTuple):
@@ -57,12 +58,12 @@ class Token(NamedTuple):
 def lookup_token_type(literal: str) -> TokenType:
     keywords: Dict[str, TokenType] = {
         'var': TokenType.LET,
-        'proceso': TokenType.FUNCTION,
-        'si': TokenType.IF,
-        'si_no': TokenType.ELSE,
-        'falso': TokenType.FALSE,
-        'verdadero': TokenType.TRUE,
-        'regresa': TokenType.RETURN
+        'fun': TokenType.FUNCTION,
+        'if': TokenType.IF,
+        'else': TokenType.ELSE,
+        'false': TokenType.FALSE,
+        'true': TokenType.TRUE,
+        'return': TokenType.RETURN,
     }
 
     return keywords.get(literal, TokenType.IDENT)

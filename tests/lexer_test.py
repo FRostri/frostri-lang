@@ -103,7 +103,7 @@ class LexerTest(TestCase):
 
     def test_function_declaration(self) -> None:
         source: str = '''
-            var suma = proceso(x, y) {
+            var suma = fun(x, y) {
                 x + y;
             };
         '''
@@ -117,7 +117,7 @@ class LexerTest(TestCase):
             Token(TokenType.LET, 'var'),
             Token(TokenType.IDENT, 'suma'),
             Token(TokenType.ASSIGN, '='),
-            Token(TokenType.FUNCTION, 'proceso'),
+            Token(TokenType.FUNCTION, 'fun'),
             Token(TokenType.LPAREN, '('),
             Token(TokenType.IDENT, 'x'),
             Token(TokenType.COMMA, ','),
@@ -159,10 +159,10 @@ class LexerTest(TestCase):
 
     def test_control_statment(self) -> None:
         source: str = '''
-            si (5 < 10) {
-                regresa verdadero;
-            } si_no {
-                regresa falso;
+            if (5 < 10) {
+                return true;
+            } else {
+                return false;
             }
         '''
         lexer: Lexer = Lexer(source)
@@ -172,21 +172,21 @@ class LexerTest(TestCase):
             tokens.append(lexer.next_token())
 
         expected_tokens: List[Token] = [
-            Token(TokenType.IF, 'si'),
+            Token(TokenType.IF, 'if'),
             Token(TokenType.LPAREN, '('),
             Token(TokenType.INT, '5'),
             Token(TokenType.LT, '<'),
             Token(TokenType.INT, '10'),
             Token(TokenType.RPAREN, ')'),
             Token(TokenType.LBRACE, '{'),
-            Token(TokenType.RETURN, 'regresa'),
-            Token(TokenType.TRUE, 'verdadero'),
+            Token(TokenType.RETURN, 'return'),
+            Token(TokenType.TRUE, 'true'),
             Token(TokenType.SEMICOLON, ';'),
             Token(TokenType.RBRACE, '}'),
-            Token(TokenType.ELSE, 'si_no'),
+            Token(TokenType.ELSE, 'else'),
             Token(TokenType.LBRACE, '{'),
-            Token(TokenType.RETURN, 'regresa'),
-            Token(TokenType.FALSE, 'falso'),
+            Token(TokenType.RETURN, 'return'),
+            Token(TokenType.FALSE, 'false'),
             Token(TokenType.SEMICOLON, ';'),
             Token(TokenType.RBRACE, '}'),
         ]
@@ -307,3 +307,27 @@ class LexerTest(TestCase):
             Token(TokenType.INT, '5'),
             Token(TokenType.SEMICOLON, ';'),
         ]
+
+        self.assertEquals(tokens, expected_tokens)
+
+    def test_assigment_with_floats(self) -> None:
+        source: str = '''
+            var float_num = 1.5;
+            var pepe = 4.2;
+        '''
+        lexer: Lexer = Lexer(source)
+
+        tokens: List[Token] = []
+
+        for i in range(5):
+            tokens.append(lexer.next_token())
+
+        expected_tokens: List[Token] = [
+            Token(TokenType.LET, 'var'),
+            Token(TokenType.IDENT, 'float_num'),
+            Token(TokenType.ASSIGN, '='),
+            Token(TokenType.FLOAT, '1.5'),
+            Token(TokenType.SEMICOLON, ';'),
+        ]
+
+        self.assertEquals(tokens, expected_tokens)
