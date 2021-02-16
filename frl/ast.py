@@ -226,7 +226,7 @@ class Function(Expression):
 
         params: str = ', '.join(param_list)
 
-        if not self.ident:
+        if self.ident is not None:
             return f'{self.token_literal()} {str(self.ident)}({params}) {str(self.body)}'
 
         return f'{self.token_literal()}({params}) {str(self.body)}'
