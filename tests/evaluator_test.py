@@ -1,4 +1,5 @@
 from typing import (
+    Any,
     cast,
     List,
     Tuple,
@@ -6,7 +7,10 @@ from typing import (
 from unittest import TestCase
 
 from frl.ast import Program
-from frl.evaluator import evaluate
+from frl.evaluator import (
+    evaluate,
+    NULL
+)
 from frl.lexer import Lexer
 from frl.object import (
     Boolean,
@@ -97,6 +101,28 @@ class EvaluatorTest(TestCase):
         for source, expected in tests:
             evaluated = self._evaluate_tests(source)
             self._test_boolean_object(evaluated, expected)
+
+    def test_if_else_evaluation(self) -> None:
+        tests: List[Tuple[str, Any]] = [
+            ('if (true) { 10 }', 10),
+            ('if (false) { 10 }', None),
+            ('if (1) { 10 }', 10),
+            ('if (1 < 2) { 10 }', 10),
+            ('if (1 > 2) { 10 }', None),
+            ('if (1 < 2) { 10 } else { 20 }', 10),
+            ('if (1 > 2) { 10 } else { 20 }', 20),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+
+            if type(expected) == int:
+                self._test_integer_object(evaluated, expected)
+            else:
+                self._test_null_object(evaluated)
+
+    def _test_null_object(self, evaluated: Object) -> None:
+        self.assertEquals(evaluated, NULL)
 
     def _evaluate_tests(self, source: str) -> Object:
         lexer: Lexer = Lexer(source)
