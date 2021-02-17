@@ -121,6 +121,48 @@ class EvaluatorTest(TestCase):
             else:
                 self._test_null_object(evaluated)
 
+    def test_return_integer_evaluation(self) -> None:
+        tests: List[Tuple[str, int]] = [
+            ('return 10;', 10),
+            ('return 10; 9;', 10),
+            ('return 2 * 5; 9;', 10),
+            ('9; return 2 * 6; 9;', 12),
+            ('''
+                if (10 > 1) {
+                    if (20 > 10) {
+                        return 1;
+                    }
+                    
+                    return 0;
+                }
+             ''', 1),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_integer_object(evaluated, expected)
+
+    def test_return_float_evaluation(self) -> None:
+        tests: List[Tuple[str, float]] = [
+            ('return 10.0;', 10.0),
+            ('return 10.5; 9;', 10.5),
+            ('return 2 * 5 / 3; 9;', 3.3333333333333335),
+            ('9; return 2 * 6 / 7; 9;', 1.7142857142857142),
+            ('''
+                if (10 > 1) {
+                    if (20 > 10) {
+                        return 1.4;
+                    }
+                    
+                    return 0.1;
+                }
+             ''', 1.4),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_float_object(evaluated, expected)
+
     def _test_null_object(self, evaluated: Object) -> None:
         self.assertEquals(evaluated, NULL)
 
