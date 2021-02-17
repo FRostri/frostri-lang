@@ -23,10 +23,12 @@ class ASTTest(TestCase):
                 token=Token(TokenType.LET, literal='var'),
                 name=Identifier(
                     token=Token(TokenType.IDENT, literal='mi_var'),
+                    line=1,
                     value='mi_var'
                 ),
                 value=Identifier(
                     token=Token(TokenType.IDENT, literal='otra_variable'),
+                    line=1,
                     value='otra_var'
                 )
             )
@@ -42,6 +44,7 @@ class ASTTest(TestCase):
                 token=Token(TokenType.RETURN, literal="return"),
                 return_value=Identifier(
                     token=Token(TokenType.IDENT, literal="mi_var"),
+                    line=1,
                     value='mi_var'
                 )
             )
@@ -60,10 +63,12 @@ class ASTTest(TestCase):
                 ),
                 name=Identifier(
                     token=Token(TokenType.IDENT, literal="mi_num"),
+                    line=1,
                     value="mi_num"
                 ),
                 value=Integer(
                     token=Token(TokenType.INT, literal="5"),
+                    line=1,
                     value=5
                 )
             ),
@@ -71,6 +76,7 @@ class ASTTest(TestCase):
                 token=Token(TokenType.RETURN, literal="return"),
                 return_value=Identifier(
                     token=Token(TokenType.IDENT, literal="mi_num"),
+                    line=1,
                     value="mi_num"
                 )
             )
@@ -92,6 +98,7 @@ class ASTTest(TestCase):
                         TokenType.IDENT,
                         literal="mi_float"
                     ),
+                    line=1,
                     value="mi_float"
                 ),
                 value=Float(
@@ -99,6 +106,7 @@ class ASTTest(TestCase):
                         TokenType.FLOAT,
                         literal="1.5"
                     ),
+                    line=1,
                     value=1.5
                 )
             )

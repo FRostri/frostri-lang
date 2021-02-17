@@ -14,6 +14,7 @@ from frl.evaluator import (
 from frl.lexer import Lexer
 from frl.object import (
     Boolean,
+    Environment,
     Error,
     Float,
     Integer,
@@ -167,29 +168,37 @@ class EvaluatorTest(TestCase):
     def test_error_handling(self) -> None:
         tests: List[Tuple[str, str]] = [
             ('true + 5;',
-             'Unexpected type: Cannot operate \'+\' with a \'BOOLEAN\' and an \'INTEGERS\''),
+             '''on the line 1.
+Unexpected type: Cannot operate \'BOOLEAN\' and \'INTEGERS\' with \'+\'.'''),
             ('true - 5;',
-             'Unexpected type: Cannot operate \'-\' with a \'BOOLEAN\' and an \'INTEGERS\''),
+             '''on the line 1.
+Unexpected type: Cannot operate \'BOOLEAN\' and \'INTEGERS\' with \'-\'.'''),
             ('5 * true; 9;',
-             'Unexpected type: Cannot operate \'*\' with a \'INTEGERS\' and an \'BOOLEAN\''),
+             '''on the line 1.
+Unexpected type: Cannot operate \'INTEGERS\' and \'BOOLEAN\' with \'*\'.'''),
             ('-true;',
-             'Unexpected operator: - operator to type \'BOOLEAN\''),
+             '''on the line 1.
+Unexpected operator: - operator to type \'BOOLEAN\'.'''),
             ('false + true;',
-             'Unexpected operator: \'BOOLEAN\' + \'BOOLEAN\''),
+             '''on the line 1.
+Unexpected operator: \'BOOLEAN\' + \'BOOLEAN\'.'''),
             ('5; false - true; 10;',
-             'Unexpected operator: \'BOOLEAN\' - \'BOOLEAN\''),
+             '''on the line 1.
+Unexpected operator: \'BOOLEAN\' - \'BOOLEAN\'.'''),
             ('''
                 if (10 > 7) {
                     return true + false;
                 }
              ''',
-             'Unexpected operator: \'BOOLEAN\' + \'BOOLEAN\''),
+             '''on the line 3.
+Unexpected operator: \'BOOLEAN\' + \'BOOLEAN\'.'''),
             ('''
                 if (10 > 1) {
                     return true * false;
                 }
              ''',
-             'Unexpected operator: \'BOOLEAN\' * \'BOOLEAN\''),
+             '''on the line 3.
+Unexpected operator: \'BOOLEAN\' * \'BOOLEAN\'.'''),
             ('''
                 if (5 < 2) {
                     return 1;
@@ -197,7 +206,11 @@ class EvaluatorTest(TestCase):
                     return true / false;
                 }
              ''',
-             'Unexpected operator: \'BOOLEAN\' / \'BOOLEAN\''),
+             '''on the line 5.
+Unexpected operator: \'BOOLEAN\' / \'BOOLEAN\'.'''),
+            ('foobar;',
+             '''on the line 1.
+Undefined variable: foobar.''')
         ]
 
         for source, expected in tests:
@@ -208,6 +221,18 @@ class EvaluatorTest(TestCase):
             evaluated = cast(Error, evaluated)
             self.assertEquals(evaluated.message, expected)
 
+    def test_assigment_evaluation(self) -> None:
+        tests: List[Tuple[str, int]] = [
+            ('var a = 5; a;', 5),
+            ('var a = 5 * 5; a;', 25),
+            ('var a = 5; var b = a; b;', 5),
+            ('var a = 5; var b = a; var c = a + b + 5; c;', 15),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_integer_object(evaluated, expected)
+
     def _test_null_object(self, evaluated: Object) -> None:
         self.assertEquals(evaluated, NULL)
 
@@ -215,8 +240,9 @@ class EvaluatorTest(TestCase):
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
         program: Program = parser.parse_program()
+        env: Environment = Environment()
 
-        evaluated = evaluate(program)
+        evaluated = evaluate(program, env)
 
         assert evaluated is not None
         return evaluated

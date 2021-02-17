@@ -145,7 +145,7 @@ class Parser:
     def _expected_token_error(self, token_type: TokenType) -> None:
         assert self._peek_token is not None
         error = f'The next token was expected to be {token_type}, but ' + \
-                f'{self._peek_token.token_type} was obtained.'
+                f'{self._peek_token.token_type} was obtained on the line {self._peek_token.line}.'
         self._errors.append(error)
 
     def _parse_block(self) -> Block:
@@ -170,11 +170,12 @@ class Parser:
         assert self._current_token is not None
 
         return Boolean(token=self._current_token,
+                       line=self._current_token.line,
                        value=self._current_token.token_type == TokenType.TRUE)
 
     def _parse_call(self, function: Expression) -> Call:
         assert self._current_token is not None
-        call = Call(self._current_token, function)
+        call = Call(self._current_token, self._current_token.line, function)
         call.arguments = self._parse_call_arguments()
 
         return call
@@ -209,7 +210,8 @@ class Parser:
         try:
             prefix_parse_fn = self._prefix_parse_fns[self._current_token.token_type]
         except KeyError:
-            message = f'No function found for parse \'{self._current_token.literal}\''
+            message = f'No function found for parse' + \
+                '\'{self._current_token.literal}\' on the line {self._peek_token.line}'
             self._errors.append(message)
 
             return None
@@ -233,7 +235,8 @@ class Parser:
 
     def _parse_float(self) -> Optional[Float]:
         assert self._current_token is not None
-        float_ = Float(token=self._current_token)
+        float_ = Float(token=self._current_token,
+                       line=self._current_token.line)
 
         try:
             float_.value = float(self._current_token.literal)
@@ -248,7 +251,8 @@ class Parser:
 
     def _parse_function(self) -> Optional[Function]:
         assert self._current_token is not None
-        function = Function(token=self._current_token)
+        function = Function(token=self._current_token,
+                            line=self._current_token.line)
 
         assert self._peek_token is not None
         if self._peek_token.token_type == TokenType.IDENT:
@@ -281,6 +285,7 @@ class Parser:
 
         assert self._current_token is not None
         identifier = Identifier(token=self._current_token,
+                                line=self._current_token.line,
                                 value=self._current_token.literal)
         params.append(identifier)
 
@@ -289,6 +294,7 @@ class Parser:
             self._advance_tokens()
 
             identifier = Identifier(token=self._current_token,
+                                    line=self._current_token.line,
                                     value=self._current_token.literal)
 
             params.append(identifier)
@@ -312,11 +318,13 @@ class Parser:
         assert self._current_token is not None
 
         return Identifier(token=self._current_token,
+                          line=self._current_token.line,
                           value=self._current_token.literal)
 
     def _parse_if(self) -> Optional[If]:
         assert self._current_token is not None
-        if_expression = If(token=self._current_token)
+        if_expression = If(token=self._current_token,
+                           line=self._current_token.line)
 
         if not self._expected_token(TokenType.LPAREN):
             return None
@@ -347,6 +355,7 @@ class Parser:
     def _parse_infix_expression(self, left: Expression) -> Infix:
         assert self._current_token is not None
         infix = Infix(token=self._current_token,
+                      line=self._current_token.line,
                       left=left,
                       operator=self._current_token.literal)
 
@@ -360,7 +369,8 @@ class Parser:
 
     def _parse_integer(self) -> Optional[Integer]:
         assert self._current_token is not None
-        integer = Integer(token=self._current_token)
+        integer = Integer(token=self._current_token,
+                          line=self._current_token.line)
 
         try:
             integer.value = int(self._current_token.literal)
@@ -398,6 +408,7 @@ class Parser:
     def _parse_prefix_expression(self) -> Prefix:
         assert self._current_token is not None
         prefix_expression = Prefix(token=self._current_token,
+                                   line=self._current_token.line,
                                    operator=self._current_token.literal)
 
         self._advance_tokens()

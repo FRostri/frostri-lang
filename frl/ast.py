@@ -32,8 +32,9 @@ class Statement(ASTNode):
 
 class Expression(ASTNode):
 
-    def __init__(self, token: Token) -> None:
+    def __init__(self, token: Token, line: int) -> None:
         self.token = token
+        self.line = line
 
     def token_literal(self) -> str:
         return self.token.literal
@@ -62,8 +63,9 @@ class Identifier(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  value: str) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.value = value
 
     def __str__(self) -> str:
@@ -112,8 +114,9 @@ class Integer(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  value: Optional[int] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.value = value
 
     def __str__(self) -> str:
@@ -124,8 +127,9 @@ class Float(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  value: Optional[float] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.value = value
 
     def __str__(self) -> str:
@@ -136,9 +140,10 @@ class Prefix(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  operator: str,
                  right: Optional[Expression] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.operator = operator
         self.right = right
 
@@ -150,10 +155,11 @@ class Infix(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  left: Expression,
                  operator: str,
                  right: Optional[Expression] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.left = left
         self.operator = operator
         self.right = right
@@ -166,8 +172,9 @@ class Boolean(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  value: Optional[bool] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.value = value
 
     def __str__(self) -> str:
@@ -192,10 +199,11 @@ class If(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  condition: Optional[Expression] = None,
                  consequence: Optional[Block] = None,
                  alternative: Optional[Block] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.condition = condition
         self.consequence = consequence
         self.alternative = alternative
@@ -213,10 +221,11 @@ class Function(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  ident: Optional[Identifier] = None,
                  parameters: List[Identifier] = [],
                  body: Optional[Block] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.ident = ident
         self.parameters = parameters
         self.body = body
@@ -237,9 +246,10 @@ class Call(Expression):
 
     def __init__(self,
                  token: Token,
+                 line: int,
                  function: Expression,
                  arguments: Optional[List[Expression]] = None) -> None:
-        super().__init__(token)
+        super().__init__(token, line)
         self.function = function
         self.arguments = arguments
 

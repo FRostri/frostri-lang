@@ -16,6 +16,7 @@ class Lexer:
         self._character: str = ''
         self._read_position: int = 0
         self._position: int = 0
+        self._line: int = 1
 
         self._read_character()
 
@@ -26,64 +27,64 @@ class Lexer:
             if self._peek_character() == '=':
                 token = self._make_two_character_token(TokenType.EQ)
             else:
-                token = Token(TokenType.ASSIGN, self._character)
+                token = Token(TokenType.ASSIGN, self._character, self._line)
         # Token '+'
         elif match(r'^\+$', self._character):
-            token = Token(TokenType.PLUS, self._character)
+            token = Token(TokenType.PLUS, self._character, self._line)
         # Token '-'
         elif match(r'^-$', self._character):
-            token = Token(TokenType.MINUS, self._character)
+            token = Token(TokenType.MINUS, self._character, self._line)
         # Token '*'
         elif match(r'^\*$', self._character):
-            token = Token(TokenType.MULTIPLICATION, self._character)
+            token = Token(TokenType.MULTIPLICATION, self._character, self._line)
         # Token '/'
         elif match(r'^\/$', self._character):
-            token = Token(TokenType.DIVISION, self._character)
+            token = Token(TokenType.DIVISION, self._character, self._line)
         # Token ''
         elif match(r'^$', self._character):
-            token = Token(TokenType.EOF, self._character)
+            token = Token(TokenType.EOF, self._character, self._line)
         # Token '('
         elif match(r'^\($', self._character):
-            token = Token(TokenType.LPAREN, self._character)
+            token = Token(TokenType.LPAREN, self._character, self._line)
         # Token ')'
         elif match(r'^\)$', self._character):
-            token = Token(TokenType.RPAREN, self._character)
+            token = Token(TokenType.RPAREN, self._character, self._line)
         # Token '{'
         elif match(r'^\{$', self._character):
-            token = Token(TokenType.LBRACE, self._character)
+            token = Token(TokenType.LBRACE, self._character, self._line)
         # Token '}'
         elif match(r'^\}$', self._character):
-            token = Token(TokenType.RBRACE, self._character)
+            token = Token(TokenType.RBRACE, self._character, self._line)
         # Token ','
         elif match(r'^\,$', self._character):
-            token = Token(TokenType.COMMA, self._character)
+            token = Token(TokenType.COMMA, self._character, self._line)
         # Token ';'
         elif match(r'^\;$', self._character):
-            token = Token(TokenType.SEMICOLON, self._character)
+            token = Token(TokenType.SEMICOLON, self._character, self._line)
         # Token '<'
         elif match(r'^<$', self._character):
             if self._peek_character() == '=':
                 token = self._make_two_character_token(TokenType.LE)
             else:
-                token = Token(TokenType.LT, self._character)
+                token = Token(TokenType.LT, self._character, self._line)
         # Token '>'
         elif match(r'^>$', self._character):
             if self._peek_character() == '=':
                 token = self._make_two_character_token(TokenType.GE)
             else:
-                token = Token(TokenType.GT, self._character)
+                token = Token(TokenType.GT, self._character, self._line)
         # Token '!'
         elif match(r'^!$', self._character):
             if self._peek_character() == '=':
                 token = self._make_two_character_token(TokenType.NOT_EQ)
             else:
-                token = Token(TokenType.NEGATION, self._character)
+                token = Token(TokenType.NEGATION, self._character, self._line)
         # Token for any letter
         elif self._is_letter(self._character):
             literal = self._read_identifier()
             token_type = lookup_token_type(literal)
 
-            return Token(token_type, literal)
+            return Token(token_type, literal, self._line)
         # Token for read numbers
         elif self._is_number(self._character):
             literal = self._read_number()
@@ -91,12 +92,12 @@ class Lexer:
             if self._character == '.':
                 self._read_character()
                 sufix = self._read_number()
-                return Token(TokenType.FLOAT, f'{literal}.{sufix}')
+                return Token(TokenType.FLOAT, f'{literal}.{sufix}', self._line)
 
-            return Token(TokenType.INT, literal)
+            return Token(TokenType.INT, literal, self._line)
         # Illegal Token
         else:
-            token = Token(TokenType.ILLEGAL, self._character)
+            token = Token(TokenType.ILLEGAL, self._character, self._line)
         self._read_character()
 
         return token
@@ -114,13 +115,18 @@ class Lexer:
         self._read_character()
         suffix = self._character
 
-        return Token(token_type, f'{prefix}{suffix}')
+        return Token(token_type, f'{prefix}{suffix}', self._line)
 
     def _read_character(self) -> None:
         if self._read_position >= len(self._source):
             self._character = ''
         else:
             self._character = self._source[self._read_position]
+            # Los \n son contados como caracteres, son skipeados por
+            # _skip_whitespace, pero los interceptamos aquí para sumar
+            # una línea
+            if self._character == "\n":
+                self._line += 1
 
         self._position = self._read_position
         self._read_position += 1
