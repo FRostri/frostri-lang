@@ -1,4 +1,5 @@
 from typing import (
+    Any,
     cast,
     List,
     Optional,
@@ -8,6 +9,7 @@ from typing import (
 import frl.ast as ast
 from frl.object import (
     Boolean,
+    Error,
     Float,
     Integer,
     Null,
@@ -20,6 +22,10 @@ from frl.object import (
 TRUE = Boolean(True)
 FALSE = Boolean(False)
 NULL = Null()
+
+_TYPE_MISMATCH = "Unexpected type: Cannot operate \'{}\' with a \'{}\' and an \'{}\'"
+_UNKNOW_PREFIX_OPERATOR = 'Unexpected operator: {} operator to type \'{}\''
+_UNKNOW_INFIX_OPERATOR = 'Unexpected operator: \'{}\' {} \'{}\''
 
 
 def evaluate(node: ast.ASTNode) -> Optional[Object]:
@@ -95,6 +101,8 @@ def _evaluate_program(program: ast.Program) -> Optional[Object]:
         if type(result) == Return:
             result = cast(Return, result)
             return result.value
+        elif type(result) == Error:
+            return result
 
     return result
 
@@ -116,7 +124,8 @@ def _evaluate_block_statement(block: ast.Block) -> Optional[Object]:
     for statement in block.statements:
         result = evaluate(statement)
 
-        if result is not None and result.type() == ObjectType.RETURN:
+        if result is not None and \
+                (result.type() == ObjectType.RETURN or result.type() == ObjectType.ERROR):
             return result
 
     return result
@@ -159,8 +168,14 @@ def _evaluate_infix_expression(operator: str,
     elif left.type() == ObjectType.BOOLEAN \
             and right.type() == ObjectType.BOOLEAN:
         return _evaluate_bool_infix_expression(operator, left, right)
+    elif left.type() != right.type():
+        return _new_error(_TYPE_MISMATCH, [operator,
+                                           left.type().name,
+                                           right.type().name])
     else:
-        return NULL
+        return _new_error(_UNKNOW_INFIX_OPERATOR, [left.type().name,
+                                                    operator,
+                                                    right.type().name])
 
 
 def _evaluate_bool_infix_expression(operator: str,
@@ -176,7 +191,9 @@ def _evaluate_bool_infix_expression(operator: str,
     elif operator == '!=':
         return _to_boolean_object(left_value is not right_value)
     else:
-        return NULL
+        return _new_error(_UNKNOW_INFIX_OPERATOR, [left.type().name,
+                                                    operator,
+                                                    right.type().name])
 
 
 def _evaluate_float_infix_expression(operator: str,
@@ -208,7 +225,9 @@ def _evaluate_float_infix_expression(operator: str,
     elif operator == '!=':
         return _to_boolean_object(left_value != right_value)
     else:
-        return NULL
+        return _new_error(_UNKNOW_INFIX_OPERATOR, [left.type().name,
+                                                    operator,
+                                                    right.type().name])
 
 
 def _evaluate_integer_infix_expression(operator: str,
@@ -241,12 +260,15 @@ def _evaluate_integer_infix_expression(operator: str,
     elif operator == '>=':
         return _to_boolean_object(left_value >= right_value)
     else:
-        return NULL
+        return _new_error(_UNKNOW_INFIX_OPERATOR, [left.type().name,
+                                                    operator,
+                                                    right.type().name])
 
 
 def _evaluate_minus_operator_expression(right: Object) -> Object:
     if type(right) != Integer and type(right) != Float:
-        return NULL
+        return _new_error(_UNKNOW_PREFIX_OPERATOR, ['-',
+                                                    right.type().name])
     elif type(right) == Float:
         right = cast(Float, right)
         return Float(-right.value)
@@ -261,7 +283,11 @@ def _evaluate_prefix_expression(operator: str, right: Object) -> Object:
     elif operator == '-':
         return _evaluate_minus_operator_expression(right)
     else:
-        return NULL
+        return _new_error(_UNKNOW_PREFIX_OPERATOR, [operator, right.type().name])
+
+
+def _new_error(message: str, args: List[Any]) -> Error:
+    return Error(message.format(*args))
 
 
 def _to_boolean_object(value: bool) -> Boolean:

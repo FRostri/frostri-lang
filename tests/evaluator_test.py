@@ -14,6 +14,7 @@ from frl.evaluator import (
 from frl.lexer import Lexer
 from frl.object import (
     Boolean,
+    Error,
     Float,
     Integer,
     Object,
@@ -162,6 +163,50 @@ class EvaluatorTest(TestCase):
         for source, expected in tests:
             evaluated = self._evaluate_tests(source)
             self._test_float_object(evaluated, expected)
+
+    def test_error_handling(self) -> None:
+        tests: List[Tuple[str, str]] = [
+            ('true + 5;',
+             'Unexpected type: Cannot operate \'+\' with a \'BOOLEAN\' and an \'INTEGERS\''),
+            ('true - 5;',
+             'Unexpected type: Cannot operate \'-\' with a \'BOOLEAN\' and an \'INTEGERS\''),
+            ('5 * true; 9;',
+             'Unexpected type: Cannot operate \'*\' with a \'INTEGERS\' and an \'BOOLEAN\''),
+            ('-true;',
+             'Unexpected operator: - operator to type \'BOOLEAN\''),
+            ('false + true;',
+             'Unexpected operator: \'BOOLEAN\' + \'BOOLEAN\''),
+            ('5; false - true; 10;',
+             'Unexpected operator: \'BOOLEAN\' - \'BOOLEAN\''),
+            ('''
+                if (10 > 7) {
+                    return true + false;
+                }
+             ''',
+             'Unexpected operator: \'BOOLEAN\' + \'BOOLEAN\''),
+            ('''
+                if (10 > 1) {
+                    return true * false;
+                }
+             ''',
+             'Unexpected operator: \'BOOLEAN\' * \'BOOLEAN\''),
+            ('''
+                if (5 < 2) {
+                    return 1;
+                } else {
+                    return true / false;
+                }
+             ''',
+             'Unexpected operator: \'BOOLEAN\' / \'BOOLEAN\''),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+
+            self.assertIsInstance(evaluated, Error)
+
+            evaluated = cast(Error, evaluated)
+            self.assertEquals(evaluated.message, expected)
 
     def _test_null_object(self, evaluated: Object) -> None:
         self.assertEquals(evaluated, NULL)
