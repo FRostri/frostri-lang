@@ -23,7 +23,7 @@ TRUE = Boolean(True)
 FALSE = Boolean(False)
 NULL = Null()
 
-_TYPE_MISMATCH = "Unexpected type: Cannot operate \'{}\' with a \'{}\' and an \'{}\'"
+_TYPE_MISMATCH = "Unexpected type: Cannot operate \'{}\' and \'{}\' with \'{}\'"
 _UNKNOW_PREFIX_OPERATOR = 'Unexpected operator: {} operator to type \'{}\''
 _UNKNOW_INFIX_OPERATOR = 'Unexpected operator: \'{}\' {} \'{}\''
 
@@ -169,9 +169,9 @@ def _evaluate_infix_expression(operator: str,
             and right.type() == ObjectType.BOOLEAN:
         return _evaluate_bool_infix_expression(operator, left, right)
     elif left.type() != right.type():
-        return _new_error(_TYPE_MISMATCH, [operator,
-                                           left.type().name,
-                                           right.type().name])
+        return _new_error(_TYPE_MISMATCH, [left.type().name,
+                                           right.type().name,
+                                           operator])
     else:
         return _new_error(_UNKNOW_INFIX_OPERATOR, [left.type().name,
                                                     operator,
