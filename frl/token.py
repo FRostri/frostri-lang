@@ -15,7 +15,6 @@ from typing import (
 class TokenType(Enum):
     ASSIGN = auto()  # =
     COMMA = auto()  # ,
-    DIFF = auto()  # !==
     DIVISION = auto()  # /
     ELSE = auto()  # else
     EOF = auto()  # final del archivo
@@ -43,13 +42,13 @@ class TokenType(Enum):
     RETURN = auto()  # return
     RPAREN = auto()  # )
     SEMICOLON = auto()  # ;
-    SIMILAR = auto()  # ===
     TRUE = auto()  # true
 
 
 class Token(NamedTuple):
     token_type: TokenType
     literal: str
+    line: int = 1
 
     def __str__(self) -> str:
         return f'Type {self.token_type}, Literal {self.literal}'

@@ -200,25 +200,15 @@ class ParserTest(TestCase):
             5 < 5;
             5 <= 5;
             5 == 5;
-            5 === 5;
             5 != 5;
-            5 !== 5;
             true == true;
             true == false;
             true != true;
             true != false;
-            true === true;
-            true === false;
-            true !== true;
-            true !== false;
             false == true;
             false == false;
             false != true;
             false != false;
-            false === true;
-            false === false;
-            false !== true;
-            false !== false;
         '''
         lexer: Lexer = Lexer(source)
         parser: Parser = Parser(lexer)
@@ -226,7 +216,7 @@ class ParserTest(TestCase):
         program: Program = parser.parse_program()
 
         self._test_program_statements(
-            parser, program, expected_statement_count=28)
+            parser, program, expected_statement_count=18)
 
         expected_operators_and_values: List[Tuple[Any, str, Any]] = [
             (5, '+', 5),
@@ -238,25 +228,15 @@ class ParserTest(TestCase):
             (5, '<', 5),
             (5, '<=', 5),
             (5, '==', 5),
-            (5, '===', 5),
             (5, '!=', 5),
-            (5, '!==', 5),
             (True, '==', True),
             (True, '==', False),
             (True, '!=', True),
             (True, '!=', False),
-            (True, '===', True),
-            (True, '===', False),
-            (True, '!==', True),
-            (True, '!==', False),
             (False, '==', True),
             (False, '==', False),
             (False, '!=', True),
             (False, '!=', False),
-            (False, '===', True),
-            (False, '===', False),
-            (False, '!==', True),
-            (False, '!==', False),
         ]
 
         for statement, (expected_left, expected_operator, expected_right) in zip(
