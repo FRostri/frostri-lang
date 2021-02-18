@@ -7,12 +7,14 @@ from enum import (
     Enum
 )
 from typing import Dict
+from typing_extensions import Protocol
 
 from utils.colors import TextColors
 
 
 class ObjectType(Enum):
     BOOLEAN = auto()
+    BUILTIN = auto()
     ERROR = auto()
     FLOAT = auto()
     INTEGERS = auto()
@@ -127,3 +129,20 @@ class String(Object):
 
     def inspect(self) -> str:
         return self.value
+
+
+class BuiltinFunction(Protocol):
+
+    def __call__(self, *args: Object) -> Object: ...
+
+
+class Builtin(Object):
+
+    def __init__(self, fn: BuiltinFunction) -> None:
+        self.fn = fn
+
+    def type(self) -> ObjectType:
+        return ObjectType.BUILTIN
+
+    def inspect(self) -> str:
+        return 'builtin function'

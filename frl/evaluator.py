@@ -7,8 +7,10 @@ from typing import (
 )
 
 import frl.ast as ast
+from frl.builtins import  BUILTINS
 from frl.object import (
     Boolean,
+    Builtin,
     Environment,
     Error,
     Float,
@@ -115,6 +117,41 @@ def evaluate(node: ast.ASTNode, env: Environment) -> Optional[Object]:
     return None
 
 
+# Para la función _apply_function cuando haga el merge de la rama de funciones
+# con esta:
+# ################# Todo esto es lo viejo ####################################
+# def _apply_function(fn: Object, args: List[Object]) -> Object:
+#   if type(fn) != Function:
+#       return _new_error(_NOT_A_FUNCTION, [fn.type().name])
+#
+#   fn = cast(Function, fn)
+#   
+#   extended_environment = _estend_function_environment(fn, args) # es otra función en la otra rama
+#   evaluated = evaluate(fn.body, extended_environment)
+#
+#   assert evaluated is not None
+#   return _unwrap_return_value(evaluated) # Y si, esta es otra función de la otra rama
+# ################# Y abajo está lo nuevo ####################################
+#
+# def _apply_function(fn: Object, args: List[Object]) -> Object:
+#   if type(fn) == Function:
+#       fn = cast(Function, fn)
+#   
+#       extended_environment = _estend_function_environment(fn, args) # es otra función en la otra rama
+#       evaluated = evaluate(fn.body, extended_environment)
+#
+#       assert evaluated is not None
+#       return _unwrap_return_value(evaluated) # Y si, esta es otra función de la otra rama
+#   elif type(fn) == Builtin:
+#       fn = cast(Builtin, fn)
+#
+#       return fn.fn(*args)
+#   else:
+#       return _new_error(_NOT_A_FUNCTION, [fn.type().name])
+#
+
+
+
 def _evaluate_program(program: ast.Program, env: Environment) -> Optional[Object]:
     result: Optional[Object] = None
 
@@ -158,7 +195,8 @@ def _evaluate_identifier(node: ast.Identifier, env: Environment, line: int) -> O
     try:
         return env[node.value]
     except KeyError:
-        return _new_error(_UNKNOW_IDENTIFIER, [line, node.value], '0004')
+        return BUILTINS.get(node.value,
+                            _new_error(_UNKNOW_IDENTIFIER, [line, node.value], '0004'))
 
 
 def _evaluate_if_expression(if_expression: ast.If, env: Environment) -> Optional[Object]:

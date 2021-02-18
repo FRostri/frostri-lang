@@ -3,6 +3,7 @@ from typing import (
     cast,
     List,
     Tuple,
+    Union,
 )
 from unittest import TestCase
 
@@ -278,6 +279,35 @@ Unexpected operator: \'STRING\' * \'STRING\'.''')
         for source, expected in tests:
             evaluated = self._evaluate_tests(source)
             self._test_boolean_object(evaluated, expected)
+
+    def test_builtin_functions(self) -> None:
+        tests: List[Tuple[str, Union[str, int]]] = [
+            ('get_len("");', 0),
+            ('get_len("cuatro");', 6),
+            ('get_len("");', 10),
+            ('get_len("uno", "dos");',
+             '''on the line 1.
+Too arguments for the \'get_len\' function. given 2, expected 1'''),
+            ('get_len(1);',
+             '''on the line 1.
+Unexpected type argument: expected \'STRING\' recived \'INTEGERS\''''),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+
+            if type(expected) == int:
+                expected = cast(int, expected)
+                self._test_integer_object(evaluated, expected)
+            else:
+                expected = cast(str, expected)
+                self._test_error_object(evaluated, expected)
+
+    def _test_error_object(self, evaluated: Object, expected: str) -> None:
+        self.assertIsInstance(evaluated, Error)
+
+        evaluated = cast(Error, evaluated)
+        self.assertEquals(evaluated.message, expected)
 
     def _test_null_object(self, evaluated: Object) -> None:
         self.assertEquals(evaluated, NULL)
