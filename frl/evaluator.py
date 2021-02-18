@@ -17,6 +17,7 @@ from frl.object import (
     Object,
     ObjectType,
     Return,
+    String,
 )
 
 
@@ -106,6 +107,10 @@ def evaluate(node: ast.ASTNode, env: Environment) -> Optional[Object]:
         node = cast(ast.Identifier, node)
 
         return _evaluate_identifier(node, env, node.line)
+    elif node_type == ast.StringLiteral:
+        node = cast(ast.StringLiteral, node)
+
+        return String(node.value)
 
     return None
 

@@ -18,6 +18,7 @@ class ObjectType(Enum):
     INTEGERS = auto()
     NULL = auto()
     RETURN = auto()
+    STRING = auto()
 
 
 class Object(ABC):
@@ -114,3 +115,15 @@ class Environment(Dict):
 
     def __delitem__(self, key):
         del self._store[key]
+
+
+class String(Object):
+
+    def __init__(self, value) -> None:
+        self.value = value
+
+    def type(self) -> ObjectType:
+        return ObjectType.STRING
+
+    def inspect(self) -> str:
+        return self.value

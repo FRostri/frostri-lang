@@ -19,6 +19,7 @@ from frl.object import (
     Float,
     Integer,
     Object,
+    String,
 )
 from frl.parser import Parser
 
@@ -232,6 +233,19 @@ Undefined variable: foobar.''')
         for source, expected in tests:
             evaluated = self._evaluate_tests(source)
             self._test_integer_object(evaluated, expected)
+
+    def test_string_evaluation(self) -> None:
+        tests: List[Tuple[str, str]] = [
+            ('"Hello world!"', 'Hello world!'),
+            ("'Platzi'", 'Platzi'),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self.assertIsInstance(evaluated, String)
+
+            evaluated = cast(String, evaluated)
+            self.assertEquals(evaluated.value, expected)
 
     def _test_null_object(self, evaluated: Object) -> None:
         self.assertEquals(evaluated, NULL)

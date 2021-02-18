@@ -95,6 +95,10 @@ class Lexer:
                 return Token(TokenType.FLOAT, f'{literal}.{sufix}', self._line)
 
             return Token(TokenType.INT, literal, self._line)
+        elif match(r"^\"|'$", self._character):
+            literal = self._read_string()
+
+            return Token(TokenType.STRING, literal, self._line)
         # Illegal Token
         else:
             token = Token(TokenType.ILLEGAL, self._character, self._line)
@@ -146,6 +150,28 @@ class Lexer:
             self._read_character()
 
         return self._source[initial_position:self._position]
+
+    def _read_string(self) -> str:
+        # Vemos en cual tipo de comilla está el caracter actual
+        quote_type = self._character
+
+        # Como antes de esto estamos en la comilla, leemos un caracter,
+        # para así ir hacia el string
+        self._read_character()
+
+        initial_position = self._position
+
+        # Segumos leyendo el string hasta que encontremos otra comilla o se
+        # acabe el archivo
+        while self._character != quote_type \
+                and self._read_position <= len(self._source):
+            self._read_character()
+
+        string = self._source[initial_position: self._position]
+
+        self._read_character()
+
+        return string
 
     def _peek_character(self, skip=1) -> str:
         if self._read_position >= len(self._source):
