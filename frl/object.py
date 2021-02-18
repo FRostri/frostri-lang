@@ -11,6 +11,7 @@ from typing import (
     List,
     Optional
 )
+from typing_extensions import Protocol
 
 from utils.colors import TextColors
 from frl.ast import (
@@ -21,12 +22,14 @@ from frl.ast import (
 
 class ObjectType(Enum):
     BOOLEAN = auto()
+    BUILTIN = auto()
     ERROR = auto()
     FLOAT = auto()
     FUNCTION = auto()
     INTEGERS = auto()
     NULL = auto()
     RETURN = auto()
+    STRING = auto()
 
 
 class Object(ABC):
@@ -154,3 +157,31 @@ class Function(Object):
             return 'fun {}({}) {{\n{}\n}}'.format(str(self.ident), params, str(self.body))
 
         return 'fun({}) {{\n{}\n}}'.format(params, str(self.body))
+
+class String(Object):
+
+    def __init__(self, value) -> None:
+        self.value = value
+
+    def type(self) -> ObjectType:
+        return ObjectType.STRING
+
+    def inspect(self) -> str:
+        return self.value
+
+
+class BuiltinFunction(Protocol):
+
+    def __call__(self, *args: Object) -> Object: ...
+
+
+class Builtin(Object):
+
+    def __init__(self, fn: BuiltinFunction) -> None:
+        self.fn = fn
+
+    def type(self) -> ObjectType:
+        return ObjectType.BUILTIN
+
+    def inspect(self) -> str:
+        return 'builtin function'

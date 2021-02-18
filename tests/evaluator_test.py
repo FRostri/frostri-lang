@@ -3,6 +3,7 @@ from typing import (
     cast,
     List,
     Tuple,
+    Union,
 )
 from unittest import TestCase
 
@@ -20,6 +21,7 @@ from frl.object import (
     Function,
     Integer,
     Object,
+    String,
 )
 from frl.parser import Parser
 
@@ -211,7 +213,13 @@ Unexpected operator: \'BOOLEAN\' * \'BOOLEAN\'.'''),
 Unexpected operator: \'BOOLEAN\' / \'BOOLEAN\'.'''),
             ('foobar;',
              '''on the line 1.
-Undefined variable: foobar.''')
+Undefined variable: foobar.'''),
+            ('"Foo" - "Bar";',
+             '''on the line 1.
+Unexpected operator: \'STRING\' - \'STRING\'.'''),
+            ("'Foo' * 'Bar';",
+             '''on the line 1.
+Unexpected operator: \'STRING\' * \'STRING\'.''')
         ]
 
         for source, expected in tests:
@@ -295,6 +303,74 @@ Undefined variable: foobar.''')
             evaluated = self._evaluate_tests(source)
             self._test_integer_object(evaluated, expected)
 
+    def test_string_evaluation(self) -> None:
+        tests: List[Tuple[str, str]] = [
+            ('"Hello world!"', 'Hello world!'),
+            ("'Platzi'", 'Platzi'),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_string_object(evaluated, expected)
+
+    def test_string_concatenation(self) -> None:
+        tests: List[Tuple[str, str]] = [
+            ('"Foo" + "bar";', 'Foobar'),
+            ("'Hello,' + ' ' + 'world!'", "Hello, world!"),
+            # ('''
+            #     var saludo = fun(nombre) {
+            #         return "Hole " + nombre + "!";
+            #     };
+            #     saludo("Isaac");
+            #  ''',
+            #  'Hola Isaac!'),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_string_object(evaluated, expected)
+
+    def test_string_comparison(self) -> None:
+        tests: List[Tuple[str, bool]] = [
+            ('"a" == "a"', True),
+            ('"a" != "a"', False),
+            ('"a" == "b"', False),
+            ('"a" != "b"', True),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_boolean_object(evaluated, expected)
+
+    def test_builtin_functions(self) -> None:
+        tests: List[Tuple[str, Union[str, int]]] = [
+            ('get_len("");', 0),
+            ('get_len("cuatro");', 6),
+            ('get_len("");', 10),
+            ('get_len("uno", "dos");',
+             '''on the line 1.
+Too arguments for the \'get_len\' function. given 2, expected 1'''),
+            ('get_len(1);',
+             '''on the line 1.
+Unexpected type argument: expected \'STRING\' recived \'INTEGERS\''''),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+
+            if type(expected) == int:
+                expected = cast(int, expected)
+                self._test_integer_object(evaluated, expected)
+            else:
+                expected = cast(str, expected)
+                self._test_error_object(evaluated, expected)
+
+    def _test_error_object(self, evaluated: Object, expected: str) -> None:
+        self.assertIsInstance(evaluated, Error)
+
+        evaluated = cast(Error, evaluated)
+        self.assertEquals(evaluated.message, expected)
+
     def _test_null_object(self, evaluated: Object) -> None:
         self.assertEquals(evaluated, NULL)
 
@@ -325,4 +401,10 @@ Undefined variable: foobar.''')
         self.assertIsInstance(evaluated, Integer)
 
         evaluated = cast(Integer, evaluated)
+        self.assertEquals(evaluated.value, expected)
+
+    def _test_string_object(self, evaluated: Object, expected: str) -> None:
+        self.assertIsInstance(evaluated, String)
+
+        evaluated = cast(String, evaluated)
         self.assertEquals(evaluated.value, expected)

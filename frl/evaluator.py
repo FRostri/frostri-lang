@@ -7,8 +7,10 @@ from typing import (
 )
 
 import frl.ast as ast
+from frl.builtins import  BUILTINS
 from frl.object import (
     Boolean,
+    Builtin,
     Environment,
     Error,
     Float,
@@ -18,6 +20,7 @@ from frl.object import (
     Object,
     ObjectType,
     Return,
+    String,
 )
 
 
@@ -132,21 +135,29 @@ def evaluate(node: ast.ASTNode, env: Environment) -> Optional[Object]:
 
         assert function is not None
         return _apply_function(function, args, node.line)
+    elif node_type == ast.StringLiteral:
+        node = cast(ast.StringLiteral, node)
+
+        return String(node.value)
 
     return None
 
 
 def _apply_function(fn: Object, args: List[Object], line: int) -> Object:
-    if type(fn) != Function:
+    if type(fn) == Function:
+        fn = cast(Function, fn)
+
+        extended_environment = _extend_function_environment(fn, args)
+        evaluated = evaluate(fn.body, extended_environment)
+
+        assert evaluated is not None
+        return _unwrap_return_value(evaluated)
+    elif type(fn) == Builtin:
+        fn = cast(Builtin, fn)
+
+        return fn.fn(*args)
+    else:
         return _new_error(_NOT_A_FUNCTION, [line, fn.type().name], '0005')
-    
-    fn = cast(Function, fn)
-
-    extended_enviroment = _extend_function_environment(fn, args)
-    evaluated = evaluate(fn.body, extended_enviroment)
-
-    assert evaluated is not None
-    return _unwrap_return_value(evaluated)
 
 
 def _extend_function_environment(fn: Function, args: List[Object]) -> Environment:
@@ -164,7 +175,6 @@ def _unwrap_return_value(obj: Object) -> Object:
         return obj.value
 
     return obj
-
 
 def _evaluate_program(program: ast.Program, env: Environment) -> Optional[Object]:
     result: Optional[Object] = None
@@ -221,7 +231,8 @@ def _evaluate_identifier(node: ast.Identifier, env: Environment, line: int) -> O
     try:
         return env[node.value]
     except KeyError:
-        return _new_error(_UNKNOW_IDENTIFIER, [line, node.value], '0004')
+        return BUILTINS.get(node.value,
+                            _new_error(_UNKNOW_IDENTIFIER, [line, node.value], '0004'))
 
 
 def _evaluate_if_expression(if_expression: ast.If, env: Environment) -> Optional[Object]:
@@ -262,18 +273,19 @@ def _evaluate_infix_expression(line: int,
     elif left.type() == ObjectType.BOOLEAN \
             and right.type() == ObjectType.BOOLEAN:
         return _evaluate_bool_infix_expression(line, operator, left, right)
+    elif left.type() == ObjectType.STRING \
+            and right.type() == ObjectType.STRING:
+        return _evaluate_string_infix_expression(line, operator, left, right)
     elif left.type() != right.type():
         return _new_error(_TYPE_MISMATCH, [line,
                                            left.type().name,
                                            right.type().name,
-                                           operator],
-                          '0001')
+                                           operator], '0001')
     else:
         return _new_error(_UNKNOW_INFIX_OPERATOR, [line,
                                                    left.type().name,
                                                    operator,
-                                                   right.type().name],
-                          '0002')
+                                                   right.type().name], '0002')
 
 
 def _evaluate_bool_infix_expression(line: int,
@@ -396,6 +408,26 @@ def _evaluate_prefix_expression(line: int, operator: str, right: Object) -> Obje
                                                     operator,
                                                     right.type().name],
                           '0002')
+
+
+def _evaluate_string_infix_expression(line: int,
+                                      operator: str,
+                                      left: Object,
+                                      right: Object) -> Object:
+    left_value: str = cast(String, left).value
+    right_value: str = cast(String, right).value
+
+    if operator == '+':
+        return String(left_value + right_value)
+    elif operator == '==':
+        return _to_boolean_object(left_value == right_value)
+    elif operator == '!=':
+        return _to_boolean_object(left_value != right_value)
+    else:
+        return _new_error(_UNKNOW_INFIX_OPERATOR, [line,
+                                                   left.type().name,
+                                                   operator,
+                                                   right.type().name], '0003')
 
 
 def _new_error(message: str, args: List[Any], err_code: str) -> Error:
