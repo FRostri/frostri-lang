@@ -95,6 +95,26 @@ class ParserTest(TestCase):
 
         self.assertEquals(names, expected_names)
 
+    def test_function_statements(self) -> None:
+        source: str = '''
+            fun sum(x, y) {
+                return x + y;
+            };
+            fun sus(x, y) {
+                return x - y;
+            };
+            fun div(x, y) {
+                return x / y;
+            };
+            fun mut(x, y) {
+                return x * y;
+            }
+        '''
+        lexer: Lexer = Lexer(source)
+        parser: Parser = Parser(lexer)
+
+        program: Program = parser.parse_program()
+
     def test_parse_errors(self) -> None:
         source: str = '''var x 3;'''
         lexer: Lexer = Lexer(source)
@@ -393,7 +413,6 @@ class ParserTest(TestCase):
 
     def test_function_literal(self) -> None:
         source: str = '''
-            fun sum(x, y) { x + y; };
             fun(x, y) { x + y; };
             fun(x, y) {
                 x + y;
@@ -405,7 +424,7 @@ class ParserTest(TestCase):
         program: Program = parser.parse_program()
 
         self._test_program_statements(
-            parser, program, expected_statement_count=3)
+            parser, program, expected_statement_count=2)
 
         function_literal = cast(Function, cast(ExpressionStatement,
                                                program.statements[0]).expression)

@@ -17,6 +17,7 @@ from frl.object import (
     Environment,
     Error,
     Float,
+    Function,
     Integer,
     Object,
 )
@@ -227,6 +228,67 @@ Undefined variable: foobar.''')
             ('var a = 5 * 5; a;', 25),
             ('var a = 5; var b = a; b;', 5),
             ('var a = 5; var b = a; var c = a + b + 5; c;', 15),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_integer_object(evaluated, expected)
+
+    def test_function_evaluation(self) -> None:
+        source: str = ' fun(x) { x + 2; }; fun suma(x) { x + 2; };'
+
+        evaluated = self._evaluate_tests(source)
+
+        self.assertIsInstance(evaluated, Function)
+
+        evaluated = cast(Function, evaluated)
+        if len(str(evaluated.ident)) != 0:
+            self.assertEquals(str(evaluated.ident), "suma")
+        self.assertEquals(len(evaluated.parameters), 1)
+        self.assertEquals(str(evaluated.parameters[0]), 'x')
+        self.assertEquals(str(evaluated.body), '(x + 2)')
+
+    def test_function_calls(self) -> None:
+        tests: List[Tuple[str, int]] = [
+            ('var identidad = fun(x) { x }; identidad(5);', 5),
+            # ('fun identidad(x) { x }; identidad(5);', 5),
+            ('''
+                var identidad = fun(x) {
+                    return x;
+                };
+                identidad(5);
+             ''', 5),
+            # ('''
+            #     fun identidad(x) {
+            #         return x;
+            #     };
+            #     identidad(5);
+            #  ''', 5),
+            ('''
+                var doble = fun(x) {
+                    return 2 * x;
+                };
+                doble(5);
+             ''', 10),
+            # ('''
+            #     fun doble(x) {
+            #         return 2 * x;
+            #     };
+            #     doble(5);
+            #  ''', 10),
+            # ('''
+            #     fun suma(x, y) {
+            #         return x + y;
+            #     };
+            #     suma(3, 8);
+            #  ''', 11),
+            # ('''
+            #     fun suma(x, y) {
+            #         return x + y;
+            #     };
+            #     suma(5 + 5, suma(10, 10));
+            #  ''', 30),
+            ('fun(x) { x }(5)', 5),
         ]
 
         for source, expected in tests:

@@ -210,8 +210,9 @@ class Parser:
         try:
             prefix_parse_fn = self._prefix_parse_fns[self._current_token.token_type]
         except KeyError:
+            assert self._peek_token is not None
             message = f'No function found for parse' + \
-                '\'{self._current_token.literal}\' on the line {self._peek_token.line}'
+                f'\' {self._current_token.literal}\' on the line {self._peek_token.line}'
             self._errors.append(message)
 
             return None

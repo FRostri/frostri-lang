@@ -12,6 +12,7 @@ from frl.object import (
     Environment,
     Error,
     Float,
+    Function,
     Integer,
     Null,
     Object,
@@ -24,6 +25,8 @@ TRUE = Boolean(True)
 FALSE = Boolean(False)
 NULL = Null()
 
+_NOT_A_FUNCTION = '''on the line {}.
+Unexpected call function: You call \'{}\' instead of a function.'''
 _TYPE_MISMATCH = '''on the line {}.
 Unexpected type: Cannot operate \'{}\' and \'{}\' with \'{}\'.'''
 _UNKNOW_PREFIX_OPERATOR = '''on the line {}.
@@ -106,8 +109,61 @@ def evaluate(node: ast.ASTNode, env: Environment) -> Optional[Object]:
         node = cast(ast.Identifier, node)
 
         return _evaluate_identifier(node, env, node.line)
+    elif node_type == ast.Function:
+        node = cast(ast.Function, node)
+
+        assert node.body is not None
+        if node.ident is not None:
+            return Function(node.parameters,
+                            node.body,
+                            env,
+                            ident=node.ident)
+        else:
+            return Function(node.parameters,
+                            node.body,
+                            env)
+    elif node_type == ast.Call:
+        node = cast(ast.Call, node)
+
+        function = evaluate(node.function, env)
+
+        assert node.arguments is not None
+        args = _evaluate_expression(node.arguments, env)
+
+        assert function is not None
+        return _apply_function(function, args, node.line)
 
     return None
+
+
+def _apply_function(fn: Object, args: List[Object], line: int) -> Object:
+    if type(fn) != Function:
+        return _new_error(_NOT_A_FUNCTION, [line, fn.type().name], '0005')
+    
+    fn = cast(Function, fn)
+
+    extended_enviroment = _extend_function_environment(fn, args)
+    evaluated = evaluate(fn.body, extended_enviroment)
+
+    assert evaluated is not None
+    return _unwrap_return_value(evaluated)
+
+
+def _extend_function_environment(fn: Function, args: List[Object]) -> Environment:
+    env = Environment(outer=fn.env)
+
+    for idx, param in enumerate(fn.parameters):
+        env[param.value] = args[idx - 1]
+
+    return env
+
+
+def _unwrap_return_value(obj: Object) -> Object:
+    if type(obj) == Return:
+        obj = cast(Return, obj)
+        return obj.value
+
+    return obj
 
 
 def _evaluate_program(program: ast.Program, env: Environment) -> Optional[Object]:
@@ -145,6 +201,18 @@ def _evaluate_block_statement(block: ast.Block, env: Environment) -> Optional[Ob
         if result is not None and \
                 (result.type() == ObjectType.RETURN or result.type() == ObjectType.ERROR):
             return result
+
+    return result
+
+
+def _evaluate_expression(expressions: List[ast.Expression], env: Environment) -> List[Object]:
+    result: List[Object] = []
+
+    for expression in expressions:
+        evaluated = evaluate(expression, env)
+
+        assert evaluated is not None
+        result.append(evaluated)
 
     return result
 
