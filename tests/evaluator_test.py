@@ -211,7 +211,13 @@ Unexpected operator: \'BOOLEAN\' * \'BOOLEAN\'.'''),
 Unexpected operator: \'BOOLEAN\' / \'BOOLEAN\'.'''),
             ('foobar;',
              '''on the line 1.
-Undefined variable: foobar.''')
+Undefined variable: foobar.'''),
+            ('"Foo" - "Bar";',
+             '''on the line 1.
+Unexpected operator: \'STRING\' - \'STRING\'.'''),
+            ("'Foo' * 'Bar';",
+             '''on the line 1.
+Unexpected operator: \'STRING\' * \'STRING\'.''')
         ]
 
         for source, expected in tests:
@@ -242,10 +248,36 @@ Undefined variable: foobar.''')
 
         for source, expected in tests:
             evaluated = self._evaluate_tests(source)
-            self.assertIsInstance(evaluated, String)
+            self._test_string_object(evaluated, expected)
 
-            evaluated = cast(String, evaluated)
-            self.assertEquals(evaluated.value, expected)
+    def test_string_concatenation(self) -> None:
+        tests: List[Tuple[str, str]] = [
+            ('"Foo" + "bar";', 'Foobar'),
+            ("'Hello,' + ' ' + 'world!'", "Hello, world!"),
+            # ('''
+            #     var saludo = fun(nombre) {
+            #         return "Hole " + nombre + "!";
+            #     };
+            #     saludo("Isaac");
+            #  ''',
+            #  'Hola Isaac!'),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_string_object(evaluated, expected)
+
+    def test_string_comparison(self) -> None:
+        tests: List[Tuple[str, bool]] = [
+            ('"a" == "a"', True),
+            ('"a" != "a"', False),
+            ('"a" == "b"', False),
+            ('"a" != "b"', True),
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+            self._test_boolean_object(evaluated, expected)
 
     def _test_null_object(self, evaluated: Object) -> None:
         self.assertEquals(evaluated, NULL)
@@ -277,4 +309,10 @@ Undefined variable: foobar.''')
         self.assertIsInstance(evaluated, Integer)
 
         evaluated = cast(Integer, evaluated)
+        self.assertEquals(evaluated.value, expected)
+
+    def _test_string_object(self, evaluated: Object, expected: str) -> None:
+        self.assertIsInstance(evaluated, String)
+
+        evaluated = cast(String, evaluated)
         self.assertEquals(evaluated.value, expected)

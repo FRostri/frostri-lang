@@ -199,18 +199,19 @@ def _evaluate_infix_expression(line: int,
     elif left.type() == ObjectType.BOOLEAN \
             and right.type() == ObjectType.BOOLEAN:
         return _evaluate_bool_infix_expression(line, operator, left, right)
+    elif left.type() == ObjectType.STRING \
+            and right.type() == ObjectType.STRING:
+        return _evaluate_string_infix_expression(line, operator, left, right)
     elif left.type() != right.type():
         return _new_error(_TYPE_MISMATCH, [line,
                                            left.type().name,
                                            right.type().name,
-                                           operator],
-                          '0001')
+                                           operator], '0001')
     else:
         return _new_error(_UNKNOW_INFIX_OPERATOR, [line,
                                                    left.type().name,
                                                    operator,
-                                                   right.type().name],
-                          '0002')
+                                                   right.type().name], '0002')
 
 
 def _evaluate_bool_infix_expression(line: int,
@@ -333,6 +334,26 @@ def _evaluate_prefix_expression(line: int, operator: str, right: Object) -> Obje
                                                     operator,
                                                     right.type().name],
                           '0002')
+
+
+def _evaluate_string_infix_expression(line: int,
+                                      operator: str,
+                                      left: Object,
+                                      right: Object) -> Object:
+    left_value: str = cast(String, left).value
+    right_value: str = cast(String, right).value
+
+    if operator == '+':
+        return String(left_value + right_value)
+    elif operator == '==':
+        return _to_boolean_object(left_value == right_value)
+    elif operator == '!=':
+        return _to_boolean_object(left_value != right_value)
+    else:
+        return _new_error(_UNKNOW_INFIX_OPERATOR, [line,
+                                                   left.type().name,
+                                                   operator,
+                                                   right.type().name], '0003')
 
 
 def _new_error(message: str, args: List[Any], err_code: str) -> Error:
