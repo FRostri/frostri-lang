@@ -256,14 +256,10 @@ class Parser:
         function = Function(token=self._current_token,
                             line=self._current_token.line)
 
-        assert self._peek_token is not None
-        if self._peek_token.token_type == TokenType.IDENT:
-            self._advance_tokens()
-            function.ident = self._parse_identifier()
-        elif not self._expected_token(TokenType.LPAREN):
+        if not self._expected_token(TokenType.LPAREN):
             return None
 
-        function.parameters = self._parse_function_parameters(function.ident)
+        function.parameters = self._parse_function_parameters()
 
         if not self._expected_token(TokenType.LBRACE):
             return None
@@ -272,7 +268,7 @@ class Parser:
 
         return function
 
-    def _parse_function_parameters(self, ident) -> List[Identifier]:
+    def _parse_function_parameters(self) -> List[Identifier]:
         params: List[Identifier] = []
 
         assert self._peek_token is not None
@@ -281,8 +277,6 @@ class Parser:
 
             return params
 
-        if ident is not None:
-            self._advance_tokens()
         self._advance_tokens()
 
         assert self._current_token is not None

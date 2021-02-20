@@ -243,15 +243,13 @@ Unexpected operator: \'STRING\' * \'STRING\'.''')
             self._test_integer_object(evaluated, expected)
 
     def test_function_evaluation(self) -> None:
-        source: str = ' fun(x) { x + 2; }; fun suma(x) { x + 2; };'
+        source: str = ' fun(x) { x + 2; };'
 
         evaluated = self._evaluate_tests(source)
 
         self.assertIsInstance(evaluated, Function)
 
         evaluated = cast(Function, evaluated)
-        if len(str(evaluated.ident)) != 0:
-            self.assertEquals(str(evaluated.ident), "suma")
         self.assertEquals(len(evaluated.parameters), 1)
         self.assertEquals(str(evaluated.parameters[0]), 'x')
         self.assertEquals(str(evaluated.body), '(x + 2)')
@@ -259,43 +257,18 @@ Unexpected operator: \'STRING\' * \'STRING\'.''')
     def test_function_calls(self) -> None:
         tests: List[Tuple[str, int]] = [
             ('var identidad = fun(x) { x }; identidad(5);', 5),
-            # ('fun identidad(x) { x }; identidad(5);', 5),
             ('''
                 var identidad = fun(x) {
                     return x;
                 };
                 identidad(5);
              ''', 5),
-            # ('''
-            #     fun identidad(x) {
-            #         return x;
-            #     };
-            #     identidad(5);
-            #  ''', 5),
             ('''
                 var doble = fun(x) {
                     return 2 * x;
                 };
                 doble(5);
              ''', 10),
-            # ('''
-            #     fun doble(x) {
-            #         return 2 * x;
-            #     };
-            #     doble(5);
-            #  ''', 10),
-            # ('''
-            #     fun suma(x, y) {
-            #         return x + y;
-            #     };
-            #     suma(3, 8);
-            #  ''', 11),
-            # ('''
-            #     fun suma(x, y) {
-            #         return x + y;
-            #     };
-            #     suma(5 + 5, suma(10, 10));
-            #  ''', 30),
             ('fun(x) { x }(5)', 5),
         ]
 
@@ -317,13 +290,13 @@ Unexpected operator: \'STRING\' * \'STRING\'.''')
         tests: List[Tuple[str, str]] = [
             ('"Foo" + "bar";', 'Foobar'),
             ("'Hello,' + ' ' + 'world!'", "Hello, world!"),
-            # ('''
-            #     var saludo = fun(nombre) {
-            #         return "Hole " + nombre + "!";
-            #     };
-            #     saludo("Isaac");
-            #  ''',
-            #  'Hola Isaac!'),
+            ('''
+                var saludo = fun(nombre) {
+                    return "Hola " + nombre + "!";
+                };
+                saludo("Isaac");
+             ''',
+             'Hola Isaac!'),
         ]
 
         for source, expected in tests:
@@ -342,14 +315,14 @@ Unexpected operator: \'STRING\' * \'STRING\'.''')
             evaluated = self._evaluate_tests(source)
             self._test_boolean_object(evaluated, expected)
 
-    def test_builtin_functions(self) -> None:
-        tests: List[Tuple[str, Union[str, int]]] = [
+    def test_builtin_get_len_functions(self) -> None:
+        tests: List[Tuple[str, Union[str, int, bool, float]]] = [
             ('get_len("");', 0),
             ('get_len("cuatro");', 6),
-            ('get_len("");', 10),
+            ('get_len("nomamesbro");', 10),
             ('get_len("uno", "dos");',
              '''on the line 1.
-Too arguments for the \'get_len\' function. given 2, expected 1'''),
+Too many arguments for \'get_len\' function. given 2, expected 1'''),
             ('get_len(1);',
              '''on the line 1.
 Unexpected type argument: expected \'STRING\' recived \'INTEGERS\''''),
@@ -364,6 +337,30 @@ Unexpected type argument: expected \'STRING\' recived \'INTEGERS\''''),
             else:
                 expected = cast(str, expected)
                 self._test_error_object(evaluated, expected)
+
+    def test_builtin_print_functions(self) -> None:
+        tests: List[Tuple[str, Union[str, int, bool, float]]] = [
+            ('print("Eso brad");', 'Eso brad'),
+            ('print(123);', 123),
+            ('print(true);', True),
+            ('print(1.4);', 1.4)
+        ]
+
+        for source, expected in tests:
+            evaluated = self._evaluate_tests(source)
+
+            if type(expected) == str:
+                expected = cast(str, expected)
+                self._test_string_object(evaluated, expected)
+            if type(expected) == int:
+                expected = cast(int, expected)
+                self._test_integer_object(evaluated, expected)
+            if type(expected) == bool:
+                expected = cast(bool, expected)
+                self._test_boolean_object(evaluated, expected)
+            if type(expected) == float:
+                expected = cast(float, expected)
+                self._test_float_object(evaluated, expected)
 
     def _test_error_object(self, evaluated: Object, expected: str) -> None:
         self.assertIsInstance(evaluated, Error)

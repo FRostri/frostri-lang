@@ -154,9 +154,6 @@ class LexerTest(TestCase):
             var suma = fun(x, y) {
                 x + y;
             };
-            fun resta(x, y) {
-                x - y;
-            };
         '''
         lexer: Lexer = Lexer(source)
 

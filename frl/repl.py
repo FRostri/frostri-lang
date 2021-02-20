@@ -39,9 +39,6 @@ def start_repl() -> None:
 
     while (source := input(f'{colors.CYAN}>>{colors.RESET} ')) != 'exit()':
 
-        if source == "clear()":
-            clear()
-
         scanned.append(source)
         lexer: Lexer = Lexer(' '.join(scanned))
         parser: Parser = Parser(lexer)
